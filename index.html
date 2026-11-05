@@ -1132,8 +1132,8 @@
        PRIORITY #1: COLLAPSIBLE SIDEBARS & THEATER 3D MODE
        ========================================================================== */
     .workspace {
-      --left-w: 320px;
-      --right-w: 374px;
+      --left-w: 276px;
+      --right-w: 364px;
       grid-template-columns: var(--left-w) minmax(0, 1fr) var(--right-w);
       transition: grid-template-columns 0.22s cubic-bezier(0.22, 1, 0.36, 1);
       position: relative;
@@ -1225,7 +1225,8 @@
     }
     .left-tab-btn.active .left-tab-dot { background: #fff; }
     .left-tab-pane { display: flex; flex-direction: column; }
-    .left-tab-pane[hidden] { display: none !important; }
+    .left-tab-pane[hidden],
+    .left-tab-pane:not(.active-pane) { display: none !important; }
 
     /* ==========================================================================
        PRIORITY #3: ACTIVE STEP SPOTLIGHT / GUIDED PULSE (TRAINING MODE ONLY)
@@ -1240,6 +1241,8 @@
         border-color: #d4a024;
       }
     }
+    .workspace:not(.exam-mode) .step-spotlight,
+    #workspaceGrid:not(.exam-mode) .step-spotlight,
     .workspace-grid:not(.exam-mode) .step-spotlight {
       animation: stepSpotlightPulse 1.5s infinite ease-in-out;
       position: relative;
@@ -1270,7 +1273,8 @@
       scrollbar-width: none;
     }
     .quick-action-hud[hidden] { display: none !important; }
-    .hud-bay-pill {
+    .hud-bay-pill,
+    .qhud-bay-tag {
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -1282,7 +1286,15 @@
       border: 1px solid var(--line);
       white-space: nowrap;
     }
-    .hud-sep {
+    .qhud-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--bay, var(--accent));
+      flex: none;
+    }
+    .hud-sep,
+    .qhud-sep {
       width: 1px;
       height: 18px;
       background: var(--line-strong);
@@ -1347,17 +1359,20 @@
     .arc-flash-hud-banner[hidden] { display: none !important; }
     .arc-hud-svg { width: 54px; height: 54px; flex: none; }
     .arc-hud-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-    .arc-hud-kicker {
+    .arc-hud-kicker,
+    .arc-hud-eyebrow {
       display: flex;
       align-items: center;
-      gap: 6px;
+      flex-wrap: wrap;
+      gap: 8px;
       font: 700 10.5px/1.1 var(--font-mono);
       color: #facc15;
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }
     .arc-hud-title { font: 700 14px/1.25 var(--font-sans); color: #ffffff; }
-    .arc-hud-reason { font: 450 12px/1.35 var(--font-sans); color: #cbd5e1; }
+    .arc-hud-reason,
+    .arc-hud-sub { font: 450 12px/1.35 var(--font-sans); color: #cbd5e1; }
     .arc-hud-actions { display: flex; flex-direction: column; gap: 4px; flex: none; }
     .nfpa-modal-card {
       background: #181c22;
@@ -1369,24 +1384,46 @@
       flex-direction: column;
       gap: 12px;
     }
+    .nfpa-header,
     .nfpa-header-strip {
       background: #facc15;
       color: #111827;
-      padding: 6px 12px;
-      border-radius: 5px;
+      padding: 8px 12px;
+      border-radius: 6px;
       font: 800 13px/1.2 var(--font-mono);
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      letter-spacing: 0.04em;
+      gap: 12px;
+      letter-spacing: 0.03em;
     }
-    .nfpa-grid {
+    .nfpa-header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .nfpa-header-text h4 {
+      font: 800 13.5px/1.2 var(--font-mono);
+      color: #111827;
+      margin: 0;
+    }
+    .nfpa-header-text span {
+      font: 600 11px/1.2 var(--font-mono);
+      color: #374151;
+    }
+    .nfpa-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .nfpa-grid,
+    .nfpa-metrics {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       font: 600 12px/1.35 var(--font-mono);
     }
-    .nfpa-cell {
+    .nfpa-cell,
+    .nfpa-metric {
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 5px;
@@ -1395,8 +1432,10 @@
       flex-direction: column;
       gap: 2px;
     }
-    .nfpa-cell span { font-size: 10px; color: #94a3b8; text-transform: uppercase; }
-    .nfpa-cell strong { color: #fde047; font-size: 12.5px; }
+    .nfpa-cell span,
+    .nfpa-metric span { font-size: 10px; color: #94a3b8; text-transform: uppercase; }
+    .nfpa-cell strong,
+    .nfpa-metric strong { color: #fde047; font-size: 12.5px; }
 
     @media (forced-colors: active) {
       .state-flag, .chip, .part-chip, .cub-pill, .btn, .tel, .bus-card { border: 1px solid CanvasText; }
@@ -1488,7 +1527,7 @@
     </div>
   </header>
 
-  <main class="workspace" id="workspaceGrid">
+  <main class="workspace workspace-grid" id="workspaceGrid">
     <!-- LEFT PANEL (Priority #4 Consolidated 2-Tab Layout) -->
     <aside class="panel left-panel" id="leftPanel">
       <div class="left-tabs-bar" role="tablist" aria-label="Operator Console Sections">
@@ -1500,7 +1539,7 @@
         </button>
       </div>
 
-      <div class="left-tab-pane" id="leftPaneMissionPpe">
+      <div class="left-tab-pane active-pane" id="leftPaneMissionPpe">
         <div class="panel-heading">
           <h2>Missions</h2>
           <span class="small-badge" id="missionCountBadge">01 / 04</span>
@@ -1638,7 +1677,7 @@
           <button type="button" class="chip active" id="btn3DCallouts"><svg class="ic"><use href="#i-pin"/></svg>Labels</button>
           <button type="button" class="chip" id="btn3DXray"><svg class="ic"><use href="#i-eye"/></svg>X-ray</button>
           <button type="button" class="chip" id="btn3DOrbit"><svg class="ic"><use href="#i-orbit"/></svg>Orbit</button>
-          <button type="button" class="chip" id="btnTheater3D" title="Maximize 3D Viewport (F)"><svg class="ic"><use href="#i-expand"/></svg>Maximize 3D</button>
+          <button type="button" class="chip" id="btnTheater3D" title="Maximize 3D Viewport (F)"><svg class="ic"><use href="#i-expand"/></svg>Maximize 3D [F]</button>
           <button type="button" class="chip chip-arc-demo" id="btnArcFlashDemo" title="Simulate 6.6 kV 3-Phase Arc-Flash Explosion (A1-A4)"><svg class="ic"><use href="#i-bolt"/></svg>Arc-Flash Demo</button>
         </div>
         <div class="tb-group">
@@ -2437,6 +2476,7 @@
 
       if (catastrophic) {
         // TIER 2: Live Electrical / Arc-Flash Hazard (-5 pts)
+        if (SIM.viewMode !== '3D') SIM.viewMode = '3D';
         AudioEngine.playArcFlashBlast();
         if (window.trigger3DArcFlash) window.trigger3DArcFlash(cub.id, title, reason);
         const vig = document.getElementById('arcFlashVignette');
@@ -2458,16 +2498,16 @@
               </div>
             </div>
             <div class="nfpa-body">
-              <p style="font-size:14px;color:var(--text);"><strong>${title}</strong></p>
-              <p style="color:var(--text-2);line-height:1.45;">${reason}</p>
+              <p style="font-size:14px;color:#ffffff;"><strong>${title}</strong></p>
+              <p style="color:#cbd5e1;line-height:1.45;">${reason}</p>
               <div class="nfpa-metrics">
                 <div class="nfpa-metric"><span>Nominal System</span><strong>6,600 V · 3Ø 60 Hz</strong></div>
                 <div class="nfpa-metric"><span>Incident Energy</span><strong>40.0 cal/cm² @ 450 mm</strong></div>
                 <div class="nfpa-metric"><span>Short-Circuit Isc</span><strong>40 kA Sym (3s)</strong></div>
               </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid var(--line);font-family:var(--font-mono);font-size:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid rgba(255,255,255,0.16);font-family:var(--font-mono);font-size:12px;color:#e2e8f0;">
                 <span>Active Cubicle: <strong>${cub.code} (${cub.id})</strong> · Roof Arc Flap: <strong>VENTED</strong></span>
-                <span style="color:var(--live);font-weight:700;">Score: ${SIM.score} / 100 (-${pts} pts)</span>
+                <span style="color:#ff8a80;font-weight:700;">Score: ${SIM.score} / 100 (-${pts} pts)</span>
               </div>
             </div>
           </div>
@@ -2483,7 +2523,7 @@
 
         const modalTitle = `Mechanical / Procedural Interlock (-${pts} pts)`;
         const modalHtml = `
-          <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:var(--earth-soft);border:1px solid var(--earth-border);border-radius:var(--r);">
+          <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:var(--earth-tint);border:1px solid var(--earth-line);border-radius:var(--r);">
             <svg class="ic" style="width:28px;height:28px;color:var(--earth);flex-shrink:0;margin-top:2px;"><use href="#i-lock"/></svg>
             <div>
               <p style="margin-bottom:4px;color:var(--text);"><strong>${title}</strong></p>
@@ -2506,8 +2546,12 @@
     function triggerArcFlashDemo() {
       if (SIM.viewMode !== '3D') {
         SIM.viewMode = '3D';
-        render();
       }
+      if (!SIM.cubicles[SIM.selectedCubicle] || !SIM.cubicles[SIM.selectedCubicle].isHV) {
+        SIM.selectedCubicle = 'BT-M1';
+        if (window.focus3DCubicle) window.focus3DCubicle('BT-M1');
+      }
+      render();
       const cub = SIM.cubicles[SIM.selectedCubicle] || SIM.cubicles['BT-M1'];
       AudioEngine.playArcFlashBlast();
       if (window.trigger3DArcFlash) {
@@ -2536,14 +2580,14 @@
             </div>
           </div>
           <div class="nfpa-body">
-            <p style="font-size:14px;color:var(--text);"><strong>${title}</strong></p>
-            <p style="color:var(--text-2);line-height:1.45;">${reason}</p>
+            <p style="font-size:14px;color:#ffffff;"><strong>${title}</strong></p>
+            <p style="color:#cbd5e1;line-height:1.45;">${reason}</p>
             <div class="nfpa-metrics">
               <div class="nfpa-metric"><span>Arc Plasma Temp</span><strong>&gt; 19,000 °C</strong></div>
               <div class="nfpa-metric"><span>Incident Energy</span><strong>40.0 cal/cm² (HRC 4)</strong></div>
               <div class="nfpa-metric"><span>Roof Relief Flap</span><strong>AR VENTED UPWARD</strong></div>
             </div>
-            <div style="font-family:var(--font-mono);font-size:12px;color:var(--safe);padding-top:4px;">
+            <div style="font-family:var(--font-mono);font-size:12px;color:#4ade80;padding-top:4px;">
               Demonstration Mode: Assessment score unchanged (${SIM.score} / 100).
             </div>
           </div>
@@ -3376,6 +3420,11 @@
 
     function connectMegger() {
       if (!checkPpe('Connect Megger Leads')) return;
+      const topo = getTopology();
+      if (topo.btVolts > 0 && SIM.megger.windingChargeVolts === 0) {
+        triggerViolation(5, 'Arc-Flash: Connected 5 kV Megger to Live 6.6 kV Feeder', 'Clipping Megger leads onto an energized 6,600 V AC feeder causes a catastrophic phase-to-ground arc-flash.', true);
+        return;
+      }
       SIM.megger.connectedCubicle = 'BT-M1';
       AudioEngine.playRatchet();
       logEvent('5 kV Megger test leads clipped to BT-M1 Phase L1 & PE.', 'info');
@@ -3385,6 +3434,19 @@
     function runMegger() {
       if (!checkPpe('Run 5 kV Megger Test')) return;
       const bt = SIM.cubicles['BT-M1'];
+      const topo = getTopology();
+      if (topo.btVolts > 0 && SIM.megger.windingChargeVolts === 0) {
+        triggerViolation(5, 'Arc-Flash: 5 kV Megger Injected into Live 6.6 kV Feeder', 'Injecting 5 kV DC Megger leads onto an energized 6,600 V AC feeder destroys the instrument and causes a catastrophic arc-flash.', true);
+        return;
+      }
+      if (SIM.ptw.active && !SIM.sft.active) {
+        triggerViolation(5, '5 kV Megger Blocked: PTW Active Without Sanction-for-Test', 'Cancel the Permit-to-Work and issue a Sanction-for-Test (SFT) before injecting 5,000 V DC.', false);
+        return;
+      }
+      if (!SIM.megger.connectedCubicle) {
+        triggerViolation(5, 'Megger Test Leads Not Connected', 'Connect 5 kV Megger test leads to Phase L1 and PE before running the insulation test.', false);
+        return;
+      }
       if (bt.earthSwitchClosed) {
         AudioEngine.playAlarm();
         SIM.megger.ir1Min = 0.0;
@@ -3444,6 +3506,10 @@
     }
 
     function cancelSFT() {
+      if (SIM.megger.windingChargeVolts > 0) {
+        triggerViolation(5, 'Lethal Stored DC Charge on Winding (4,850 V DC)', 'Never cancel Sanction-for-Test while 4,850 V DC capacitive charge remains on the stator winding. Discharge winding to 0 V DC first.', true);
+        return;
+      }
       SIM.sft.active = false;
       SIM.sft.cancelledAfterTest = true;
       SIM.cubicles['BT-M1'].sftDoorBypass = false;
@@ -3639,8 +3705,14 @@
         btn2.classList.toggle('active', isTools);
         btn2.setAttribute('aria-selected', String(isTools));
       }
-      if (pane1) pane1.classList.toggle('active-pane', !isTools);
-      if (pane2) pane2.classList.toggle('active-pane', isTools);
+      if (pane1) {
+        pane1.classList.toggle('active-pane', !isTools);
+        pane1.hidden = isTools;
+      }
+      if (pane2) {
+        pane2.classList.toggle('active-pane', isTools);
+        pane2.hidden = !isTools;
+      }
     }
 
     function syncLeftPanelTabForStep() {
@@ -3681,7 +3753,7 @@
       if (btnT) {
         const isTheater = lCol && rCol;
         btnT.classList.toggle('active', isTheater);
-        btnT.textContent = isTheater ? 'Exit Theater [F]' : 'Maximize 3D [F]';
+        btnT.innerHTML = `<svg class="ic"><use href="#i-expand"/></svg>${isTheater ? 'Exit Theater [F]' : 'Maximize 3D [F]'}`;
       }
       if (typeof window.dispatchEvent === 'function' && typeof Event === 'function') {
         window.dispatchEvent(new Event('resize'));
@@ -3719,6 +3791,7 @@
       const hud = document.getElementById('quickActionHud');
       if (!hud) return;
       const bayVar = BAY_COLOR_VARS[cub.id] || 'var(--accent)';
+      hud.style.setProperty('--bay', bayVar);
       const ppeBtn = !isFullPPE()
         ? `<button type="button" class="btn btn-xs btn-primary" data-hud-act="ppe" onclick="document.getElementById('btnEquipAllPPE').click()">Don PPE</button>`
         : '';
@@ -7999,6 +8072,11 @@
         updateArcFlashVFX();
       }
 
+      if (arcFlashState.shakeOffset) {
+        camera.position.sub(arcFlashState.shakeOffset);
+        arcFlashState.shakeOffset.set(0, 0, 0);
+      }
+
       if (isCamTweening) {
         camera.position.lerp(tweenPos, 0.10);
         controls.target.lerp(tweenTarget, 0.10);
@@ -8015,9 +8093,11 @@
         const sNorm = arcFlashState.shakeTimer / 0.60;
         const amp = 0.055 * sNorm * sNorm;
         const tNow = arcFlashState.shakeTimer * 55.0;
-        camera.position.x += Math.sin(tNow * 1.7) * amp;
-        camera.position.y += Math.cos(tNow * 2.3) * amp * 0.85;
-        camera.position.z += Math.sin(tNow * 1.3) * amp * 0.55;
+        const sx = Math.sin(tNow * 1.7) * amp;
+        const sy = Math.cos(tNow * 2.3) * amp * 0.85;
+        const sz = Math.sin(tNow * 1.3) * amp * 0.55;
+        arcFlashState.shakeOffset.set(sx, sy, sz);
+        camera.position.add(arcFlashState.shakeOffset);
       }
 
       updateDividedCallouts();
@@ -8107,6 +8187,7 @@
       timer: 0,
       duration: 1.45,
       shakeTimer: 0,
+      shakeOffset: new THREE.Vector3(),
       interlockPulseTimer: 0
     };
 
