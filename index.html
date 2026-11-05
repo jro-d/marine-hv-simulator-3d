@@ -8014,7 +8014,7 @@
         arcFlashState.shakeTimer = Math.max(0, arcFlashState.shakeTimer - 0.016);
         const sNorm = arcFlashState.shakeTimer / 0.60;
         const amp = 0.055 * sNorm * sNorm;
-        const tNow = performance.now() * 0.055;
+        const tNow = arcFlashState.shakeTimer * 55.0;
         camera.position.x += Math.sin(tNow * 1.7) * amp;
         camera.position.y += Math.cos(tNow * 2.3) * amp * 0.85;
         camera.position.z += Math.sin(tNow * 1.3) * amp * 0.55;
@@ -8239,7 +8239,7 @@
       }
 
       // PointLight intensity decay (25 -> 0) with high-frequency plasma flicker
-      const flicker = 0.72 + 0.28 * Math.sin(performance.now() * 0.09);
+      const flicker = 0.72 + 0.28 * Math.sin(progress * 90.0);
       arcLightCore.intensity = 25.0 * decay * flicker;
       arcLightFire.intensity = 16.0 * decay;
 
