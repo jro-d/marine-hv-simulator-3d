@@ -720,16 +720,16 @@
     .callout-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
     .callout-badge {
       position: absolute;
-      max-width: 190px;
+      max-width: 184px;
       pointer-events: auto;
       background: rgba(255, 255, 255, 0.94);
       border: 1px solid var(--line);
       border-radius: var(--r);
-      padding: 3px 8px 3px 4px;
+      padding: 2px 7px 2px 3px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       box-shadow: var(--shadow-1);
       white-space: nowrap;
     }
@@ -738,21 +738,27 @@
     .callout-badge:hover { border-color: var(--cat); }
     .callout-badge.selected { border-color: var(--cat); background: color-mix(in oklab, var(--cat) 12%, white); box-shadow: 0 0 0 1px var(--cat); }
     .callout-code {
-      font: 700 10.5px/1 var(--font-mono);
+      font: 700 10px/1 var(--font-mono);
       color: #fff;
       background: var(--cat);
       border-radius: 3px;
-      padding: 3px 4px;
+      padding: 2px 4px;
     }
-    .callout-name { font: 600 11.5px/1.2 var(--font-sans); color: var(--text); overflow: hidden; text-overflow: ellipsis; }
+    .callout-name { font: 600 11px/1.15 var(--font-sans); color: var(--text); overflow: hidden; text-overflow: ellipsis; }
 
     .stage-hint {
       position: absolute;
       right: 10px;
-      top: 8px;
+      top: 6px;
       z-index: 7;
-      font-size: 11.5px;
-      color: var(--text-3);
+      font-size: 11px;
+      line-height: 1.2;
+      color: var(--text-2);
+      background: rgba(252, 251, 248, 0.88);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
       pointer-events: none;
     }
 
@@ -763,6 +769,8 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 30;
+      width: max-content;
+      max-width: min(532px, calc(100% - 384px));
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -781,7 +789,7 @@
       box-shadow: var(--shadow-2);
       font-size: 13px;
       color: var(--text);
-      max-width: 560px;
+      max-width: 100%;
       animation: toastIn 0.18s ease-out;
     }
     .toast .ic { color: var(--tc, var(--info)); }
@@ -1344,7 +1352,7 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 26;
-      width: min(536px, calc(100% - 48px));
+      width: min(532px, calc(100% - 384px));
       background: rgba(24, 28, 34, 0.95);
       color: #f8fafc;
       border: 2px solid #ef4444;
@@ -1358,7 +1366,7 @@
     }
     .arc-flash-hud-banner[hidden] { display: none !important; }
     .arc-flash-hud-banner:not([hidden]) ~ .toast-host {
-      top: 178px;
+      top: 184px;
     }
     .arc-hud-svg { width: 54px; height: 54px; flex: none; }
     .arc-hud-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
@@ -2357,6 +2365,18 @@
       return SIM.ppe.suit && SIM.ppe.glovesAirTested && SIM.ppe.gloves && SIM.ppe.bootsMat;
     }
 
+    function syncToastHostOffset() {
+      const banner = document.getElementById('arcFlashHudBanner');
+      const host = document.getElementById('toastHost');
+      if (!host) return;
+      if (banner && !banner.hidden) {
+        const h = banner.offsetHeight || 150;
+        host.style.top = `${(banner.offsetTop || 28) + h + 8}px`;
+      } else {
+        host.style.top = '';
+      }
+    }
+
     function showToast(text, tone = 'info') {
       const host = document.getElementById('toastHost');
       if (!host) return;
@@ -2381,6 +2401,7 @@
       while (host.children.length > 3) {
         host.removeChild(host.firstChild);
       }
+      syncToastHostOffset();
       setTimeout(() => {
         if (item.parentNode) item.parentNode.removeChild(item);
       }, 3200);
@@ -2438,6 +2459,7 @@
     function dismissArcFlashBanner() {
       const banner = document.getElementById('arcFlashHudBanner');
       if (banner) banner.hidden = true;
+      syncToastHostOffset();
       if (_arcBannerTimer) {
         clearTimeout(_arcBannerTimer);
         _arcBannerTimer = null;
@@ -2470,9 +2492,11 @@
         </div>
       `;
       banner.hidden = false;
+      syncToastHostOffset();
       if (_arcBannerTimer) clearTimeout(_arcBannerTimer);
       _arcBannerTimer = setTimeout(() => {
         if (banner) banner.hidden = true;
+        syncToastHostOffset();
       }, isDemo ? 7500 : 8500);
     }
 
