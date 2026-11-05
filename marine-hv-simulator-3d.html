@@ -522,7 +522,7 @@
       flex-shrink: 0;
     }
     .cad-toolbar { background: var(--surface-2); padding: 5px 12px; }
-    .parts-strip { background: var(--panel); padding: 5px 12px; flex-direction: column; align-items: stretch; gap: 4px; }
+    .parts-strip { background: var(--panel); padding: 5px 12px; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     .cad-toolbar[hidden], .parts-strip[hidden] { display: none; }
 
     .segmented-tabs {
@@ -584,32 +584,123 @@
     .chip .ic { width: 13px; height: 13px; }
     .chip:hover { color: var(--text); border-color: var(--line-strong); }
     .chip.active { background: var(--accent-tint); border-color: var(--accent-line); color: var(--accent); }
+    .chip[hidden] { display: none; }
 
-    .part-chips { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 1px; }
-    .part-chip {
+    .parts-strip-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 420px; }
+    .parts-dropdown-btn {
+      anchor-name: --parts-dropdown-anchor;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      border: 1px solid var(--line);
+      gap: 7px;
+      border: 1px solid var(--accent-line);
       background: var(--surface);
+      color: var(--text);
       border-radius: var(--r-sm);
-      padding: 3px 7px;
-      font: 650 11.5px/1.3 var(--font-mono);
-      color: var(--text-2);
+      padding: 4px 10px;
+      font: 600 12px/1.3 var(--font-sans);
+      box-shadow: 0 1px 2px rgba(31, 37, 41, 0.06);
       white-space: nowrap;
       flex: none;
     }
-    .part-chip .cat-dot { width: 7px; height: 7px; border-radius: 2px; background: var(--cat); }
-    .part-chip:hover { border-color: var(--cat, var(--line-strong)); color: var(--text); }
+    .parts-dropdown-btn:hover { border-color: var(--accent); background: var(--accent-tint); }
+    .parts-dropdown-btn .cat-dot { width: 8px; height: 8px; border-radius: 2px; background: var(--cat, var(--accent)); flex: none; }
+    .parts-dropdown-title { font-weight: 650; color: var(--text); }
+    .parts-dropdown-badge {
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      font: 650 11px/1.3 var(--font-mono);
+      color: var(--accent);
+    }
+    .parts-dropdown-caret { font-size: 11px; color: var(--text-3); margin-left: 1px; }
+
+    .parts-dropdown-menu {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--r-md);
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: var(--shadow-lg);
+      padding: 10px;
+      width: min(640px, 92vw);
+      max-height: min(76vh, 520px);
+      overflow-y: auto;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 90;
+    }
+    .parts-dropdown-menu:is(:popover-open, .\:popover-open) {
+      display: flex;
+    }
+    @supports (position-area: block-end) {
+      .parts-dropdown-menu {
+        position-anchor: --parts-dropdown-anchor;
+        position-area: block-end span-inline-end;
+        inset: auto;
+        margin: 4px 0 0 0;
+        position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+      }
+    }
+    @supports not (position-area: block-end) {
+      .parts-dropdown-menu {
+        position: fixed;
+        inset: auto;
+        margin: 0;
+      }
+    }
+    .parts-dropdown-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-2);
+    }
+    .part-chips {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 5px;
+    }
+    .part-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: var(--r-sm);
+      padding: 5px 8px;
+      font: 650 11.5px/1.3 var(--font-mono);
+      color: var(--text-2);
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .part-chip[data-part="all"] {
+      grid-column: 1 / -1;
+      justify-content: center;
+      font-weight: 700;
+    }
+    .part-chip .cat-dot { width: 8px; height: 8px; border-radius: 2px; background: var(--cat); flex: none; }
+    .part-chip .part-chip-spec {
+      margin-left: auto;
+      font: 500 10.5px/1.2 var(--font-sans);
+      color: var(--text-3);
+      padding-left: 6px;
+    }
+    .part-chip:hover { border-color: var(--cat, var(--line-strong)); color: var(--text); background: var(--surface-2); }
     .part-chip.active {
       background: color-mix(in oklab, var(--cat, var(--accent)) 14%, white);
       border-color: var(--cat, var(--accent));
       color: var(--text);
     }
-    .part-info { display: flex; align-items: baseline; gap: 8px; font-size: 12.5px; color: var(--text-2); min-height: 18px; }
+    .part-info { display: flex; align-items: baseline; gap: 8px; font-size: 12px; color: var(--text-2); min-height: 18px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .part-info strong { color: var(--text); font-weight: 650; }
     .part-info .num { color: var(--cat, var(--accent)); font-size: 11.5px; font-weight: 700; }
-    .cat-legend { display: flex; gap: 10px; font-size: 11.5px; color: var(--text-3); flex-wrap: wrap; }
+    .cat-legend { display: flex; gap: 10px; font-size: 11.5px; color: var(--text-3); flex-wrap: wrap; flex: none; }
     .cat-legend span { display: inline-flex; align-items: center; gap: 4px; }
     .cat-legend i { width: 8px; height: 8px; border-radius: 2px; background: var(--cat); display: inline-block; }
 
@@ -1037,6 +1128,276 @@
     table.ref th, table.ref td { padding: 8px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
     table.ref th { background: var(--surface-2); font-weight: 650; }
 
+    /* ==========================================================================
+       PRIORITY #1: COLLAPSIBLE SIDEBARS & THEATER 3D MODE
+       ========================================================================== */
+    .workspace {
+      --left-w: 320px;
+      --right-w: 374px;
+      grid-template-columns: var(--left-w) minmax(0, 1fr) var(--right-w);
+      transition: grid-template-columns 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+      position: relative;
+    }
+    .workspace.left-collapsed { --left-w: 0px; }
+    .workspace.right-collapsed { --right-w: 0px; }
+    .workspace.left-collapsed .left-panel,
+    .workspace.right-collapsed .right-panel {
+      overflow: hidden;
+      border-width: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar-edge-toggle {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 24;
+      width: 20px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      background: rgba(252, 251, 248, 0.94);
+      border: 1px solid var(--line-strong);
+      color: var(--text-2);
+      font: 700 13px/1 var(--font-mono);
+      box-shadow: var(--shadow-1);
+      backdrop-filter: blur(4px);
+    }
+    .sidebar-edge-toggle:hover {
+      background: var(--accent-tint);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .sidebar-edge-toggle.edge-left {
+      left: 0;
+      border-left: 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .sidebar-edge-toggle.edge-right {
+      right: 0;
+      border-right: 0;
+      border-radius: 6px 0 0 6px;
+    }
+
+    /* ==========================================================================
+       PRIORITY #4: CONSOLIDATED LEFT PANEL TABS
+       ========================================================================== */
+    .left-tabs-bar {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      padding: 8px 10px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .left-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: var(--r);
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text-2);
+      font: 600 12px/1.2 var(--font-sans);
+      white-space: nowrap;
+      position: relative;
+    }
+    .left-tab-btn:hover { background: var(--surface-2); color: var(--text); }
+    .left-tab-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(31, 111, 120, 0.25);
+    }
+    .left-tab-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #d4a024;
+      flex: none;
+    }
+    .left-tab-btn.active .left-tab-dot { background: #fff; }
+    .left-tab-pane { display: flex; flex-direction: column; }
+    .left-tab-pane[hidden] { display: none !important; }
+
+    /* ==========================================================================
+       PRIORITY #3: ACTIVE STEP SPOTLIGHT / GUIDED PULSE (TRAINING MODE ONLY)
+       ========================================================================== */
+    @keyframes stepSpotlightPulse {
+      0%, 100% {
+        box-shadow: 0 0 0 2px var(--accent), 0 0 0 5px rgba(31, 111, 120, 0.26);
+        border-color: var(--accent);
+      }
+      50% {
+        box-shadow: 0 0 0 2px #d4a024, 0 0 0 7px rgba(212, 160, 36, 0.38);
+        border-color: #d4a024;
+      }
+    }
+    .workspace-grid:not(.exam-mode) .step-spotlight {
+      animation: stepSpotlightPulse 1.5s infinite ease-in-out;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ==========================================================================
+       PRIORITY #2: DIRECT 3D CONTEXT POPOVER / QUICK-ACTION HUD
+       ========================================================================== */
+    .quick-action-hud {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      background: rgba(252, 251, 248, 0.94);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--line-strong);
+      border-top: 2.5px solid var(--bay, var(--accent));
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(31, 37, 41, 0.14), 0 1px 3px rgba(31, 37, 41, 0.08);
+      max-width: calc(100% - 28px);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .quick-action-hud[hidden] { display: none !important; }
+    .hud-bay-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font: 700 11.5px/1 var(--font-mono);
+      color: var(--text);
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    .hud-sep {
+      width: 1px;
+      height: 18px;
+      background: var(--line-strong);
+      flex: none;
+      margin: 0 2px;
+    }
+
+    /* ==========================================================================
+       A1–A4: ISO 7010 W012 / NFPA 70E ARC-FLASH HAZARD HUD, VIGNETTE & MODAL
+       ========================================================================== */
+    .chip-arc-demo {
+      background: #fff5f3;
+      border-color: #e7bab2;
+      color: #ad4337;
+      font-weight: 650;
+    }
+    .chip-arc-demo:hover {
+      background: #ad4337;
+      border-color: #ad4337;
+      color: #fff;
+    }
+    .arc-flash-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 21;
+      opacity: 0;
+      background: radial-gradient(circle at 50% 46%, rgba(255, 252, 230, 0.65) 0%, rgba(255, 115, 24, 0.44) 45%, rgba(185, 28, 28, 0.82) 100%);
+    }
+    .arc-flash-vignette.active {
+      animation: arcVignetteFlash 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes arcVignetteFlash {
+      0% { opacity: 0.96; }
+      10% { opacity: 0.38; }
+      20% { opacity: 0.92; }
+      45% { opacity: 0.50; }
+      100% { opacity: 0; }
+    }
+    @keyframes hazardBorderPulse {
+      0%, 100% { box-shadow: 0 12px 36px rgba(185, 28, 28, 0.32), 0 0 0 2px #dc2626; }
+      50% { box-shadow: 0 12px 42px rgba(234, 179, 8, 0.42), 0 0 0 3px #facc15; }
+    }
+    .arc-flash-hud-banner {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 26;
+      width: min(640px, calc(100% - 48px));
+      background: rgba(24, 28, 34, 0.95);
+      color: #f8fafc;
+      border: 2px solid #ef4444;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      backdrop-filter: blur(8px);
+      animation: hazardBorderPulse 0.9s infinite ease-in-out;
+    }
+    .arc-flash-hud-banner[hidden] { display: none !important; }
+    .arc-hud-svg { width: 54px; height: 54px; flex: none; }
+    .arc-hud-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .arc-hud-kicker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font: 700 10.5px/1.1 var(--font-mono);
+      color: #facc15;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .arc-hud-title { font: 700 14px/1.25 var(--font-sans); color: #ffffff; }
+    .arc-hud-reason { font: 450 12px/1.35 var(--font-sans); color: #cbd5e1; }
+    .arc-hud-actions { display: flex; flex-direction: column; gap: 4px; flex: none; }
+    .nfpa-modal-card {
+      background: #181c22;
+      color: #f8fafc;
+      border: 2px solid #dc2626;
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .nfpa-header-strip {
+      background: #facc15;
+      color: #111827;
+      padding: 6px 12px;
+      border-radius: 5px;
+      font: 800 13px/1.2 var(--font-mono);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      letter-spacing: 0.04em;
+    }
+    .nfpa-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      font: 600 12px/1.35 var(--font-mono);
+    }
+    .nfpa-cell {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 5px;
+      padding: 7px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .nfpa-cell span { font-size: 10px; color: #94a3b8; text-transform: uppercase; }
+    .nfpa-cell strong { color: #fde047; font-size: 12.5px; }
+
     @media (forced-colors: active) {
       .state-flag, .chip, .part-chip, .cub-pill, .btn, .tel, .bus-card { border: 1px solid CanvasText; }
       .chip.active, .part-chip.active, .cub-pill.active, .segmented-tab.active { outline: 2px solid Highlight; }
@@ -1127,109 +1488,126 @@
     </div>
   </header>
 
-  <main class="workspace">
-    <!-- LEFT PANEL -->
-    <aside class="panel left-panel">
-      <div class="panel-heading">
-        <h2>Missions</h2>
-        <span class="small-badge" id="missionCountBadge">01 / 04</span>
+  <main class="workspace" id="workspaceGrid">
+    <!-- LEFT PANEL (Priority #4 Consolidated 2-Tab Layout) -->
+    <aside class="panel left-panel" id="leftPanel">
+      <div class="left-tabs-bar" role="tablist" aria-label="Operator Console Sections">
+        <button type="button" class="left-tab-btn active" id="tabLeftMissionPpe">
+          <span>1. Mission &amp; PPE</span>
+        </button>
+        <button type="button" class="left-tab-btn" id="tabLeftToolsKeys">
+          <span>2. Tools &amp; Megger</span>
+        </button>
       </div>
 
-      <nav class="scenario-list">
-        <button type="button" class="scenario-btn active" data-m="1">
-          <span class="scenario-num">01</span><span>Bow Thruster 6.6 kV Motor Isolation &amp; PTW</span>
-        </button>
-        <button type="button" class="scenario-btn" data-m="2">
-          <span class="scenario-num">02</span><span>Transformer Dual-End Isolation (Back-Feed Trap)</span>
-        </button>
-        <button type="button" class="scenario-btn" data-m="3">
-          <span class="scenario-num">03</span><span>Sanction-for-Test &amp; 5 kV Megger / PI Test</span>
-        </button>
-        <button type="button" class="scenario-btn" data-m="4">
-          <span class="scenario-num">04</span><span>De-Isolation &amp; Safe Restoration to Service</span>
-        </button>
-      </nav>
-
-      <div class="section-box">
-        <div class="section-title-row">
-          <span class="section-title" style="--sec: var(--safe);"><span class="sec-icon"><svg class="ic"><use href="#i-shield"/></svg></span>HV PPE · COSWP Ch. 22</span>
-          <button type="button" class="btn btn-sm btn-primary" id="btnEquipAllPPE">Don all</button>
+      <div class="left-tab-pane" id="leftPaneMissionPpe">
+        <div class="panel-heading">
+          <h2>Missions</h2>
+          <span class="small-badge" id="missionCountBadge">01 / 04</span>
         </div>
-        <div class="ppe-row" id="ppeGlovesRow">
-          <div class="ppe-text">
-            <span class="ppe-title">Class 2 HV Gloves (17 kV)</span>
-            <span class="ppe-sub" id="ppeGlovesSub">Roll air-test required</span>
+
+        <nav class="scenario-list">
+          <button type="button" class="scenario-btn active" data-m="1">
+            <span class="scenario-num">01</span><span>Bow Thruster 6.6 kV Motor Isolation &amp; PTW</span>
+          </button>
+          <button type="button" class="scenario-btn" data-m="2">
+            <span class="scenario-num">02</span><span>Transformer Dual-End Isolation (Back-Feed Trap)</span>
+          </button>
+          <button type="button" class="scenario-btn" data-m="3">
+            <span class="scenario-num">03</span><span>Sanction-for-Test &amp; 5 kV Megger / PI Test</span>
+          </button>
+          <button type="button" class="scenario-btn" data-m="4">
+            <span class="scenario-num">04</span><span>De-Isolation &amp; Safe Restoration to Service</span>
+          </button>
+        </nav>
+
+        <div class="section-box">
+          <div class="section-title-row">
+            <span class="section-title" style="--sec: var(--safe);"><span class="sec-icon"><svg class="ic"><use href="#i-shield"/></svg></span>HV PPE · COSWP Ch. 22</span>
+            <button type="button" class="btn btn-sm btn-primary" id="btnEquipAllPPE">Don all</button>
+          </div>
+          <div class="ppe-row" id="ppeGlovesRow">
+            <div class="ppe-text">
+              <span class="ppe-title">Class 2 HV Gloves (17 kV)</span>
+              <span class="ppe-sub" id="ppeGlovesSub">Roll air-test required</span>
+            </div>
+            <div style="display:flex;gap:4px;">
+              <button type="button" class="btn btn-sm" id="btnRollTest">Air-test</button>
+              <button type="button" class="btn btn-sm" id="btnDonGloves">Don</button>
+            </div>
+          </div>
+          <div class="ppe-row" id="ppeSuitRow">
+            <div class="ppe-text">
+              <span class="ppe-title">Arc-Flash Suit (40 cal/cm²)</span>
+              <span class="ppe-sub" id="ppeSuitSub">Not donned</span>
+            </div>
+            <button type="button" class="btn btn-sm" id="btnDonSuit">Equip</button>
+          </div>
+          <div class="ppe-row" id="ppeBootsRow">
+            <div class="ppe-text">
+              <span class="ppe-title">Dielectric Boots &amp; 15 kV Mat</span>
+              <span class="ppe-sub" id="ppeBootsSub">Not deployed</span>
+            </div>
+            <button type="button" class="btn btn-sm" id="btnDonBoots">Deploy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="left-tab-pane" id="leftPaneToolsKeys" hidden>
+        <div class="section-box">
+          <div class="section-title-row">
+            <span class="section-title" style="--sec: var(--info);"><span class="sec-icon"><svg class="ic"><use href="#i-wrench"/></svg></span>Toolbelt</span>
+            <span class="small-badge" id="currentToolLabel">HAND</span>
+          </div>
+          <div class="tool-grid" id="toolbeltGrid">
+            <button type="button" class="tool-item selected" data-t="HAND"><svg class="ic"><use href="#i-hand"/></svg>Hand / operate</button>
+            <button type="button" class="tool-item" data-t="CRANK"><svg class="ic"><use href="#i-wrench"/></svg>Racking crank</button>
+            <button type="button" class="tool-item" data-t="EARTH_LEVER"><svg class="ic"><use href="#i-earth"/></svg>Earth lever</button>
+            <button type="button" class="tool-item" data-t="PADLOCK"><svg class="ic"><use href="#i-lock"/></svg>LOTO padlock</button>
+            <button type="button" class="tool-item" data-t="TAG_DANGER"><svg class="ic"><use href="#i-tag"/></svg>Danger tag</button>
+            <button type="button" class="tool-item" data-t="TAG_EARTH"><svg class="ic"><use href="#i-tag"/></svg>Earth tag</button>
+            <button type="button" class="tool-item" data-t="HV_TESTER"><svg class="ic"><use href="#i-probe"/></svg>6.6 kV wand</button>
+            <button type="button" class="tool-item" data-t="PORTABLE_EARTH"><svg class="ic"><use href="#i-chain"/></svg>Portable earth</button>
+            <button type="button" class="tool-item" data-t="MEGGER"><svg class="ic"><use href="#i-meter"/></svg>5 kV Megger</button>
+            <button type="button" class="tool-item" data-t="TAG_SFT"><svg class="ic"><use href="#i-tag"/></svg>SFT tag</button>
+          </div>
+        </div>
+
+        <div class="section-box">
+          <div class="section-title-row">
+            <span class="section-title" style="--sec: var(--brass);"><span class="sec-icon"><svg class="ic"><use href="#i-key"/></svg></span>Castell Keys</span>
+            <span class="small-badge" id="keyBoxStatusBadge">Key box open</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;" id="keyChipsContainer"></div>
+          <button type="button" class="btn btn-sm" id="btnToggleKeyBox"><svg class="ic ic-sm"><use href="#i-lock"/></svg>Lock keys in safety key box</button>
+        </div>
+
+        <div class="section-box" id="meggerSectionBox">
+          <div class="section-title-row">
+            <span class="section-title" style="--sec: var(--test);"><span class="sec-icon"><svg class="ic"><use href="#i-meter"/></svg></span>5 kV Insulation / PI Tester</span>
+            <span class="small-badge" id="meggerLeadBadge">Leads off</span>
+          </div>
+          <div class="megger-grid">
+            <div><span>IR 1-min</span><strong id="valMegger1Min">—</strong></div>
+            <div><span>IR 10-min</span><strong id="valMegger10Min">—</strong></div>
+            <div><span>PI ratio</span><strong id="valMeggerPI">—</strong></div>
+            <div><span>Stored charge</span><strong id="valMeggerVolts">0 V DC</strong></div>
           </div>
           <div style="display:flex;gap:4px;">
-            <button type="button" class="btn btn-sm" id="btnRollTest">Air-test</button>
-            <button type="button" class="btn btn-sm" id="btnDonGloves">Don</button>
+            <button type="button" class="btn btn-sm" id="btnConnectMeggerLeads">Connect leads</button>
+            <button type="button" class="btn btn-sm btn-test" id="btnExecuteMeggerTest">Run 5 kV test</button>
           </div>
+          <button type="button" class="btn btn-sm btn-success" id="btnBleedMeggerCharge">Discharge winding to 0 V</button>
         </div>
-        <div class="ppe-row" id="ppeSuitRow">
-          <div class="ppe-text">
-            <span class="ppe-title">Arc-Flash Suit (40 cal/cm²)</span>
-            <span class="ppe-sub" id="ppeSuitSub">Not donned</span>
-          </div>
-          <button type="button" class="btn btn-sm" id="btnDonSuit">Equip</button>
-        </div>
-        <div class="ppe-row" id="ppeBootsRow">
-          <div class="ppe-text">
-            <span class="ppe-title">Dielectric Boots &amp; 15 kV Mat</span>
-            <span class="ppe-sub" id="ppeBootsSub">Not deployed</span>
-          </div>
-          <button type="button" class="btn btn-sm" id="btnDonBoots">Deploy</button>
-        </div>
-      </div>
-
-      <div class="section-box">
-        <div class="section-title-row">
-          <span class="section-title" style="--sec: var(--info);"><span class="sec-icon"><svg class="ic"><use href="#i-wrench"/></svg></span>Toolbelt</span>
-          <span class="small-badge" id="currentToolLabel">HAND</span>
-        </div>
-        <div class="tool-grid" id="toolbeltGrid">
-          <button type="button" class="tool-item selected" data-t="HAND"><svg class="ic"><use href="#i-hand"/></svg>Hand / operate</button>
-          <button type="button" class="tool-item" data-t="CRANK"><svg class="ic"><use href="#i-wrench"/></svg>Racking crank</button>
-          <button type="button" class="tool-item" data-t="EARTH_LEVER"><svg class="ic"><use href="#i-earth"/></svg>Earth lever</button>
-          <button type="button" class="tool-item" data-t="PADLOCK"><svg class="ic"><use href="#i-lock"/></svg>LOTO padlock</button>
-          <button type="button" class="tool-item" data-t="TAG_DANGER"><svg class="ic"><use href="#i-tag"/></svg>Danger tag</button>
-          <button type="button" class="tool-item" data-t="TAG_EARTH"><svg class="ic"><use href="#i-tag"/></svg>Earth tag</button>
-          <button type="button" class="tool-item" data-t="HV_TESTER"><svg class="ic"><use href="#i-probe"/></svg>6.6 kV wand</button>
-          <button type="button" class="tool-item" data-t="PORTABLE_EARTH"><svg class="ic"><use href="#i-chain"/></svg>Portable earth</button>
-          <button type="button" class="tool-item" data-t="MEGGER"><svg class="ic"><use href="#i-meter"/></svg>5 kV Megger</button>
-          <button type="button" class="tool-item" data-t="TAG_SFT"><svg class="ic"><use href="#i-tag"/></svg>SFT tag</button>
-        </div>
-      </div>
-
-      <div class="section-box">
-        <div class="section-title-row">
-          <span class="section-title" style="--sec: var(--brass);"><span class="sec-icon"><svg class="ic"><use href="#i-key"/></svg></span>Castell Keys</span>
-          <span class="small-badge" id="keyBoxStatusBadge">Key box open</span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:5px;" id="keyChipsContainer"></div>
-        <button type="button" class="btn btn-sm" id="btnToggleKeyBox"><svg class="ic ic-sm"><use href="#i-lock"/></svg>Lock keys in safety key box</button>
-      </div>
-
-      <div class="section-box" id="meggerSectionBox">
-        <div class="section-title-row">
-          <span class="section-title" style="--sec: var(--test);"><span class="sec-icon"><svg class="ic"><use href="#i-meter"/></svg></span>5 kV Insulation / PI Tester</span>
-          <span class="small-badge" id="meggerLeadBadge">Leads off</span>
-        </div>
-        <div class="megger-grid">
-          <div><span>IR 1-min</span><strong id="valMegger1Min">—</strong></div>
-          <div><span>IR 10-min</span><strong id="valMegger10Min">—</strong></div>
-          <div><span>PI ratio</span><strong id="valMeggerPI">—</strong></div>
-          <div><span>Stored charge</span><strong id="valMeggerVolts">0 V DC</strong></div>
-        </div>
-        <div style="display:flex;gap:4px;">
-          <button type="button" class="btn btn-sm" id="btnConnectMeggerLeads">Connect leads</button>
-          <button type="button" class="btn btn-sm btn-test" id="btnExecuteMeggerTest">Run 5 kV test</button>
-        </div>
-        <button type="button" class="btn btn-sm btn-success" id="btnBleedMeggerCharge">Discharge winding to 0 V</button>
       </div>
     </aside>
 
     <!-- CENTER -->
     <section class="center-viewport">
+      <!-- Priority #1: Docked Sidebar Collapse/Expand Chevrons -->
+      <button type="button" class="sidebar-edge-toggle edge-left" id="btnCollapseLeft" title="Collapse/Expand Left Sidebar">&laquo;</button>
+      <button type="button" class="sidebar-edge-toggle edge-right" id="btnCollapseRight" title="Collapse/Expand Right Sidebar">&raquo;</button>
+
       <div class="view-toolbar">
         <div class="segmented-tabs" role="tablist">
           <button type="button" class="segmented-tab active" id="tabView3D"><svg class="ic"><use href="#i-cube"/></svg>3D Twin</button>
@@ -1260,6 +1638,8 @@
           <button type="button" class="chip active" id="btn3DCallouts"><svg class="ic"><use href="#i-pin"/></svg>Labels</button>
           <button type="button" class="chip" id="btn3DXray"><svg class="ic"><use href="#i-eye"/></svg>X-ray</button>
           <button type="button" class="chip" id="btn3DOrbit"><svg class="ic"><use href="#i-orbit"/></svg>Orbit</button>
+          <button type="button" class="chip" id="btnTheater3D" title="Maximize 3D Viewport (F)"><svg class="ic"><use href="#i-expand"/></svg>Maximize 3D</button>
+          <button type="button" class="chip chip-arc-demo" id="btnArcFlashDemo" title="Simulate 6.6 kV 3-Phase Arc-Flash Explosion (A1-A4)"><svg class="ic"><use href="#i-bolt"/></svg>Arc-Flash Demo</button>
         </div>
         <div class="tb-group">
           <label for="sliderExplode" class="tb-label" style="cursor:pointer;">Explode</label>
@@ -1273,18 +1653,31 @@
 
       <!-- Assembly parts strip -->
       <div class="parts-strip" id="partsStrip">
-        <div class="part-chips" id="partChips"></div>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-          <div class="part-info" id="partInfo"></div>
-          <div class="cat-legend">
-            <span style="--cat: var(--cat-enclosure);"><i></i>Enclosure</span>
-            <span style="--cat: var(--cat-control);"><i></i>Control</span>
-            <span style="--cat: var(--cat-mechanism);"><i></i>Mechanism</span>
-            <span style="--cat: var(--cat-interrupter);"><i></i>Interrupter</span>
-            <span style="--cat: var(--cat-safety);"><i></i>Safety</span>
-            <span style="--cat: var(--cat-earthing);"><i></i>Earthing</span>
-            <span style="--cat: var(--cat-power);"><i></i>Power path</span>
+        <div class="parts-strip-left">
+          <button type="button" class="parts-dropdown-btn" id="btnPartsDropdown" popovertarget="partsDropdownMenu">
+            <span class="cat-dot" id="partsDropdownDot" style="background:var(--accent);"></span>
+            <span class="parts-dropdown-title">Equipment Parts</span>
+            <span class="parts-dropdown-badge" id="partsDropdownBadge">All (19)</span>
+            <span class="parts-dropdown-caret" aria-hidden="true">&#9662;</span>
+          </button>
+          <div id="partsDropdownMenu" popover="auto" class="parts-dropdown-menu">
+            <div class="parts-dropdown-head">
+              <span>19 Sub-Assemblies &middot; IEC 62271-200 Form 4b</span>
+              <span class="num">Select a part to isolate in 3D</span>
+            </div>
+            <div class="part-chips" id="partChips"></div>
           </div>
+          <button type="button" class="chip" id="btnPartResetAll" hidden title="Reset part isolation to show all 19 sub-assemblies">Show All</button>
+          <div class="part-info" id="partInfo"></div>
+        </div>
+        <div class="cat-legend">
+          <span style="--cat: var(--cat-enclosure);"><i></i>Enclosure</span>
+          <span style="--cat: var(--cat-control);"><i></i>Control</span>
+          <span style="--cat: var(--cat-mechanism);"><i></i>Mechanism</span>
+          <span style="--cat: var(--cat-interrupter);"><i></i>Interrupter</span>
+          <span style="--cat: var(--cat-safety);"><i></i>Safety</span>
+          <span style="--cat: var(--cat-earthing);"><i></i>Earthing</span>
+          <span style="--cat: var(--cat-power);"><i></i>Power path</span>
         </div>
       </div>
 
@@ -1292,6 +1685,9 @@
         <div id="threeCanvasHost"></div>
         <div class="callout-layer" id="calloutLayer"><svg class="callout-svg" id="calloutSvg"></svg></div>
         <div class="stage-hint">Drag to orbit · Right-drag to pan · Scroll to zoom · Click a bay or part</div>
+        <div class="arc-flash-vignette" id="arcFlashVignette" aria-hidden="true"></div>
+        <div class="arc-flash-hud-banner" id="arcFlashHudBanner" hidden role="alert"></div>
+        <div class="quick-action-hud" id="quickActionHud" aria-label="3D Quick Bay Actions"></div>
         <div class="toast-host" id="toastHost" aria-live="polite"></div>
       </div>
 
@@ -1558,6 +1954,110 @@
         osc.stop(now + 0.26);
       }
 
+      function playInterlockBlock() {
+        const c = getCtx();
+        if (!c) return;
+        const now = c.currentTime;
+        // Heavy mechanical stop clank
+        const clank = c.createOscillator();
+        const clankGain = c.createGain();
+        clank.type = 'triangle';
+        clank.frequency.setValueAtTime(135, now);
+        clank.frequency.exponentialRampToValueAtTime(42, now + 0.09);
+        clankGain.gain.setValueAtTime(0.55, now);
+        clankGain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+        clank.connect(clankGain);
+        clankGain.connect(c.destination);
+        clank.start(now);
+        clank.stop(now + 0.12);
+
+        // Double electromechanical interlock buzzer
+        [0.06, 0.20].forEach(offset => {
+          const buzz = c.createOscillator();
+          const bGain = c.createGain();
+          buzz.type = 'sawtooth';
+          buzz.frequency.setValueAtTime(165, now + offset);
+          bGain.gain.setValueAtTime(0.26, now + offset);
+          bGain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.11);
+          buzz.connect(bGain);
+          bGain.connect(c.destination);
+          buzz.start(now + offset);
+          buzz.stop(now + offset + 0.12);
+        });
+      }
+
+      function playArcFlashBlast() {
+        const c = getCtx();
+        if (!c) return;
+        const now = c.currentTime;
+
+        // 1. Explosive arc-blast white-noise cannon burst with sweeping bandpass filter
+        const dur = 0.85;
+        const bufSize = Math.floor(c.sampleRate * dur);
+        const noiseBuf = c.createBuffer(1, bufSize, c.sampleRate);
+        const data = noiseBuf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) {
+          const env = Math.pow(1 - i / bufSize, 1.45);
+          data[i] = (Math.random() * 2 - 1) * env;
+        }
+        const noiseSrc = c.createBufferSource();
+        noiseSrc.buffer = noiseBuf;
+        const filter = c.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(950, now);
+        filter.frequency.exponentialRampToValueAtTime(140, now + dur);
+        filter.Q.setValueAtTime(0.9, now);
+        const noiseGain = c.createGain();
+        noiseGain.gain.setValueAtTime(0.95, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+        noiseSrc.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(c.destination);
+        noiseSrc.start(now);
+        noiseSrc.stop(now + dur);
+
+        // 2. Sub-bass pressure shockwave thump
+        const sub = c.createOscillator();
+        const subGain = c.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(110, now);
+        sub.frequency.exponentialRampToValueAtTime(24, now + 0.48);
+        subGain.gain.setValueAtTime(0.85, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.52);
+        sub.connect(subGain);
+        subGain.connect(c.destination);
+        sub.start(now);
+        sub.stop(now + 0.55);
+
+        // 3. 60 Hz & 120 Hz 6.6 kV plasma arc buzz / crackle
+        [60, 120, 240].forEach((freq, idx) => {
+          const arcOsc = c.createOscillator();
+          const arcGain = c.createGain();
+          arcOsc.type = 'sawtooth';
+          arcOsc.frequency.setValueAtTime(freq, now);
+          arcGain.gain.setValueAtTime(0.32 / (idx + 1), now);
+          arcGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+          arcOsc.connect(arcGain);
+          arcGain.connect(c.destination);
+          arcOsc.start(now);
+          arcOsc.stop(now + 0.68);
+        });
+
+        // 4. Marine Engine Control Room (ECR) two-tone klaxon alarm
+        [0.28, 0.56, 0.84, 1.12].forEach((tOff, idx) => {
+          const klax = c.createOscillator();
+          const kGain = c.createGain();
+          klax.type = 'square';
+          klax.frequency.setValueAtTime(idx % 2 === 0 ? 680 : 510, now + tOff);
+          kGain.gain.setValueAtTime(0.20, now + tOff);
+          kGain.gain.exponentialRampToValueAtTime(0.001, now + tOff + 0.24);
+          klax.connect(kGain);
+          kGain.connect(c.destination);
+          klax.start(now + tOff);
+          klax.stop(now + tOff + 0.25);
+        });
+      }
+
       function playSuccess() {
         const c = getCtx();
         if (!c) return;
@@ -1582,6 +2082,8 @@
         playRatchet,
         playPiezo,
         playAlarm,
+        playInterlockBlock,
+        playArcFlashBlast,
         playSuccess
       };
     })();
@@ -1604,6 +2106,8 @@
       viewMode: '3D', // '3D' | 'FACEPLATE' | 'INTERIOR' | 'SLD'
       activeTool: 'HAND',
       lastProbedTerminal: null,
+      leftPanelTab: 'MISSION_PPE', // 'MISSION_PPE' | 'TOOLS_KEYS'
+      lastAutoStepKey: '',
 
       ppe: {
         suit: false,
@@ -1852,26 +2356,211 @@
       if (!dlg.open && typeof dlg.showModal === 'function') dlg.showModal();
     }
 
-    function triggerViolation(pts, title, reason, catastrophic = false) {
-      AudioEngine.playAlarm();
+    function buildIso7010ArcSvg(size = 56) {
+      return `
+        <svg viewBox="0 0 100 92" width="${size}" height="${Math.round(size * 0.92)}" role="img" aria-label="ISO 7010 W012 High Voltage Arc-Flash Hazard">
+          <defs>
+            <radialGradient id="arcPlasmaGrad" cx="50%" cy="62%" r="48%">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="38%" stop-color="#ffd54f"/>
+              <stop offset="75%" stop-color="#ff6d00"/>
+              <stop offset="100%" stop-color="#d50000" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Outer pulsing plasma shockwave -->
+          <circle cx="50" cy="54" r="38" fill="url(#arcPlasmaGrad)">
+            <animate attributeName="r" values="32;42;32" dur="0.75s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.9;0.35;0.9" dur="0.75s" repeatCount="indefinite"/>
+          </circle>
+          <!-- ISO 7010 W012 Yellow Hazard Triangle -->
+          <polygon points="50,6 95,84 5,84" fill="#f5c400" stroke="#111315" stroke-width="6.5" stroke-linejoin="round"/>
+          <polygon points="50,14 87,79 13,79" fill="none" stroke="#111315" stroke-width="1.6" stroke-linejoin="round" opacity="0.35"/>
+          <!-- Arc-flash starburst spikes -->
+          <polygon points="50,36 55,47 67,44 58,53 69,62 56,60 59,72 50,63 41,72 44,60 31,62 42,53 33,44 45,47" fill="#d82b1e" opacity="0.88">
+            <animate attributeName="opacity" values="0.95;0.45;0.95" dur="0.38s" repeatCount="indefinite"/>
+          </polygon>
+          <!-- High-Voltage Lightning Bolt (ISO 7010 W012) -->
+          <polygon points="53,24 36,52 49,52 42,74 66,45 52,45" fill="#111315"/>
+          <polygon points="42,74 37,66 47,68" fill="#111315"/>
+        </svg>
+      `;
+    }
+
+    let _arcBannerTimer = null;
+    let _lastArcModalData = null;
+
+    function dismissArcFlashBanner() {
+      const banner = document.getElementById('arcFlashHudBanner');
+      if (banner) banner.hidden = true;
+      if (_arcBannerTimer) {
+        clearTimeout(_arcBannerTimer);
+        _arcBannerTimer = null;
+      }
+    }
+
+    function openLastArcFlashModal() {
+      if (!_lastArcModalData) return;
+      showNotice(_lastArcModalData.modalTitle, _lastArcModalData.modalHtml);
+    }
+
+    function showArcFlashBanner(title, reason, ptsLabel = '-5 PTS', isDemo = false) {
+      const banner = document.getElementById('arcFlashHudBanner');
+      if (!banner) return;
+      const cub = SIM.cubicles[SIM.selectedCubicle] || SIM.cubicles['BT-M1'];
+      banner.innerHTML = `
+        <div class="arc-hud-svg">${buildIso7010ArcSvg(56)}</div>
+        <div class="arc-hud-body">
+          <div class="arc-hud-eyebrow">
+            <span>ISO 7010 W012 · NFPA 70E HRC 4</span>
+            <span>40 cal/cm² · 6,600 V AC · 40 kA</span>
+            <span style="color:#ff8a80;">${ptsLabel}</span>
+          </div>
+          <div class="arc-hud-title">${title}</div>
+          <div class="arc-hud-sub">${reason} (Bay: ${cub.code} · ${cub.id})</div>
+        </div>
+        <div class="arc-hud-actions">
+          <button type="button" class="btn btn-xs btn-danger" onclick="openLastArcFlashModal()">NFPA 70E Report</button>
+          <button type="button" class="btn btn-xs" style="background:#26292e;color:#f4f3ef;border-color:#4b525c;" onclick="dismissArcFlashBanner()">Dismiss</button>
+        </div>
+      `;
+      banner.hidden = false;
+      if (_arcBannerTimer) clearTimeout(_arcBannerTimer);
+      _arcBannerTimer = setTimeout(() => {
+        if (banner) banner.hidden = true;
+      }, isDemo ? 7500 : 8500);
+    }
+
+    function triggerViolation(pts = 5, title, reason, catastrophic = false) {
+      pts = 5;
       SIM.score = Math.max(0, SIM.score - pts);
-      logEvent(`[Interlock / Safety -${pts} pts] ${title}`, 'danger');
-      if (catastrophic || SIM.mode === 'EXAM') {
-        showNotice(
-          catastrophic ? `Arc-Flash Hazard (-${pts} pts)` : `Safety Violation (-${pts} pts)`,
-          `<p style="margin-bottom:6px;"><strong>${title}</strong></p><p style="color:var(--text-2);">${reason}</p><p style="margin-top:10px;font-family:var(--font-mono);font-size:12px;">Assessment score: <strong>${SIM.score} / 100</strong></p>`
-        );
+      const cub = SIM.cubicles[SIM.selectedCubicle] || SIM.cubicles['BT-M1'];
+
+      if (catastrophic) {
+        // TIER 2: Live Electrical / Arc-Flash Hazard (-5 pts)
+        AudioEngine.playArcFlashBlast();
+        if (window.trigger3DArcFlash) window.trigger3DArcFlash(cub.id, title, reason);
+        const vig = document.getElementById('arcFlashVignette');
+        if (vig) {
+          vig.classList.remove('active');
+          void vig.offsetWidth;
+          vig.classList.add('active');
+        }
+        logEvent(`[ARC-FLASH HAZARD -${pts} pts] ${title}`, 'danger');
+
+        const modalTitle = `ISO 7010 W012 · 6.6 kV Arc-Flash Hazard (-${pts} pts)`;
+        const modalHtml = `
+          <div class="nfpa-modal-card">
+            <div class="nfpa-header">
+              <div>${buildIso7010ArcSvg(46)}</div>
+              <div class="nfpa-header-text">
+                <h4>DANGER — HIGH VOLTAGE ARC-FLASH &amp; SHOCK HAZARD</h4>
+                <span>ISO 7010 W012 · NFPA 70E PPE Category 4 · STCW Table A-III/6</span>
+              </div>
+            </div>
+            <div class="nfpa-body">
+              <p style="font-size:14px;color:var(--text);"><strong>${title}</strong></p>
+              <p style="color:var(--text-2);line-height:1.45;">${reason}</p>
+              <div class="nfpa-metrics">
+                <div class="nfpa-metric"><span>Nominal System</span><strong>6,600 V · 3Ø 60 Hz</strong></div>
+                <div class="nfpa-metric"><span>Incident Energy</span><strong>40.0 cal/cm² @ 450 mm</strong></div>
+                <div class="nfpa-metric"><span>Short-Circuit Isc</span><strong>40 kA Sym (3s)</strong></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid var(--line);font-family:var(--font-mono);font-size:12px;">
+                <span>Active Cubicle: <strong>${cub.code} (${cub.id})</strong> · Roof Arc Flap: <strong>VENTED</strong></span>
+                <span style="color:var(--live);font-weight:700;">Score: ${SIM.score} / 100 (-${pts} pts)</span>
+              </div>
+            </div>
+          </div>
+        `;
+        _lastArcModalData = { modalTitle, modalHtml };
+        showArcFlashBanner(title, reason, `-${pts} PTS`, false);
+        showNotice(modalTitle, modalHtml);
+      } else {
+        // TIER 1: Mechanical / Procedural Interlock Block (-5 pts)
+        AudioEngine.playInterlockBlock();
+        if (window.trigger3DInterlockPulse) window.trigger3DInterlockPulse(cub.id);
+        logEvent(`[Interlock Block -${pts} pts] ${title}`, 'danger');
+
+        const modalTitle = `Mechanical / Procedural Interlock (-${pts} pts)`;
+        const modalHtml = `
+          <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:var(--earth-soft);border:1px solid var(--earth-border);border-radius:var(--r);">
+            <svg class="ic" style="width:28px;height:28px;color:var(--earth);flex-shrink:0;margin-top:2px;"><use href="#i-lock"/></svg>
+            <div>
+              <p style="margin-bottom:4px;color:var(--text);"><strong>${title}</strong></p>
+              <p style="color:var(--text-2);font-size:13px;line-height:1.45;">${reason}</p>
+            </div>
+          </div>
+          <p style="margin-top:10px;font-family:var(--font-mono);font-size:12px;display:flex;justify-content:space-between;">
+            <span>Cubicle: <strong>${cub.code} · ${cub.id}</strong></span>
+            <span>Assessment Score: <strong>${SIM.score} / 100 (-${pts} pts)</strong></span>
+          </p>
+        `;
+        _lastArcModalData = { modalTitle, modalHtml };
+        if (SIM.mode === 'EXAM') {
+          showNotice(modalTitle, modalHtml);
+        }
       }
       render();
     }
 
+    function triggerArcFlashDemo() {
+      if (SIM.viewMode !== '3D') {
+        SIM.viewMode = '3D';
+        render();
+      }
+      const cub = SIM.cubicles[SIM.selectedCubicle] || SIM.cubicles['BT-M1'];
+      AudioEngine.playArcFlashBlast();
+      if (window.trigger3DArcFlash) {
+        window.trigger3DArcFlash(
+          cub.id,
+          `6.6 kV Three-Phase Arc-Flash Blast (${cub.id})`,
+          'Simulated 40 kA internal busbar fault with roof arc-relief flap (AR) overpressure venting.'
+        );
+      }
+      const vig = document.getElementById('arcFlashVignette');
+      if (vig) {
+        vig.classList.remove('active');
+        void vig.offsetWidth;
+        vig.classList.add('active');
+      }
+      const title = `Simulated 6.6 kV / 40 kA Arc-Flash Blast (${cub.code} · ${cub.id})`;
+      const reason = 'Plasma fault across L1-L2-L3 primary spouts; top arc-relief flap (AR) blown open upward to vent 40 cal/cm² overpressure.';
+      const modalTitle = `ISO 7010 W012 · Arc-Flash Blast Demonstration (${cub.id})`;
+      const modalHtml = `
+        <div class="nfpa-modal-card">
+          <div class="nfpa-header">
+            <div>${buildIso7010ArcSvg(46)}</div>
+            <div class="nfpa-header-text">
+              <h4>DANGER — 6.6 kV INTERNAL ARC-FLASH SIMULATION</h4>
+              <span>IEC 62271-200 IAC AFLR 40 kA 1s · ISO 7010 W012</span>
+            </div>
+          </div>
+          <div class="nfpa-body">
+            <p style="font-size:14px;color:var(--text);"><strong>${title}</strong></p>
+            <p style="color:var(--text-2);line-height:1.45;">${reason}</p>
+            <div class="nfpa-metrics">
+              <div class="nfpa-metric"><span>Arc Plasma Temp</span><strong>&gt; 19,000 °C</strong></div>
+              <div class="nfpa-metric"><span>Incident Energy</span><strong>40.0 cal/cm² (HRC 4)</strong></div>
+              <div class="nfpa-metric"><span>Roof Relief Flap</span><strong>AR VENTED UPWARD</strong></div>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:12px;color:var(--safe);padding-top:4px;">
+              Demonstration Mode: Assessment score unchanged (${SIM.score} / 100).
+            </div>
+          </div>
+        </div>
+      `;
+      _lastArcModalData = { modalTitle, modalHtml };
+      showArcFlashBanner(title, reason, 'DEMO · 0 PTS', true);
+      logEvent(`3D Arc-Flash Blast Demo triggered on ${cub.id} (score unchanged).`, 'warn');
+    }
+
     function checkPpe(action) {
       if (!SIM.ppe.glovesAirTested && SIM.ppe.gloves) {
-        triggerViolation(15, 'HV Gloves Donned Without Roll Air-Test', 'STCW requires pneumatic roll testing for pinholes prior to donning.');
+        triggerViolation(5, 'HV Gloves Donned Without Roll Air-Test', 'STCW requires pneumatic roll testing for pinholes prior to donning.');
         return false;
       }
       if (!isFullPPE()) {
-        triggerViolation(15, `Incomplete PPE for ${action}`, '40 cal/cm² arc-flash suit, air-tested Class 2 gloves, and dielectric boots/mat must be equipped.');
+        triggerViolation(5, `Incomplete PPE for ${action}`, '40 cal/cm² arc-flash suit, air-tested Class 2 gloves, and dielectric boots/mat must be equipped.');
         return false;
       }
       return true;
@@ -2347,20 +3036,20 @@
       if (cub.vcbClosed) return;
       if (cub.isHV) {
         if (cub.rackingTurns !== 20 && cub.rackingTurns !== 10) {
-          triggerViolation(10, 'Cannot Close VCB in Mid-Travel or Disconnected Position', 'VCB must be in SERVICE (20) or TEST (10) position.');
+          triggerViolation(5, 'Cannot Close VCB in Mid-Travel or Disconnected Position', 'VCB must be in SERVICE (20) or TEST (10) position.');
           return;
         }
         if (cub.earthSwitchClosed) {
-          triggerViolation(25, 'Cannot Close VCB on Closed Earth Switch', 'Mechanical interlock blocks closing while earthed.');
+          triggerViolation(5, 'Cannot Close VCB on Closed Earth Switch', 'Closing a 6.6 kV breaker onto a closed earth switch creates a 40 kA bolted 3-phase short-circuit fault; mechanical interlock blocked closure.', true);
           return;
         }
         if (cub.castellLockedOut) {
-          triggerViolation(15, 'VCB Locked Out by Castell Key', 'Return and unlock Castell key before closing.');
+          triggerViolation(5, 'VCB Locked Out by Castell Key', 'Return and unlock Castell key before closing.');
           return;
         }
       } else {
         if (cub.rackingPadlocked || cub.castellLockedOut) {
-          triggerViolation(15, 'ACB-TR1-LV Padlocked or Locked Out', 'Remove LOTO padlock and Castell lock before closing.');
+          triggerViolation(5, 'ACB-TR1-LV Padlocked or Locked Out', 'Remove LOTO padlock and Castell lock before closing.');
           return;
         }
       }
@@ -2376,15 +3065,15 @@
       const cub = SIM.cubicles[cubId];
       if (!cub.isHV) return;
       if (cub.vcbClosed) {
-        triggerViolation(25, 'Live Racking Prevention Interlock Engaged', 'VCB must be tripped OPEN [O] before racking.');
+        triggerViolation(5, 'Live Racking Prevention Interlock Engaged', 'Attempting to rack a CLOSED 6.6 kV breaker draws a lethal open-air plasma arc across the primary tulip spouts. Trip VCB OPEN [O] first.', true);
         return;
       }
       if (cub.rackingPadlocked) {
-        triggerViolation(10, 'Racking Port Padlocked', 'Remove LOTO padlock from racking shutter first.');
+        triggerViolation(5, 'Racking Port Padlocked', 'Remove LOTO padlock from racking shutter first.');
         return;
       }
       if (cub.castellLockedOut) {
-        triggerViolation(10, 'VCB Castell Key Extracted', 'Return Castell key to VCB before racking in.');
+        triggerViolation(5, 'VCB Castell Key Extracted', 'Return Castell key to VCB before racking in.');
         return;
       }
       const next = Math.max(0, Math.min(20, cub.rackingTurns + delta));
@@ -2418,11 +3107,11 @@
       if (!kId) return;
       if (!cub.castellLockedOut) {
         if (cub.isHV && (cub.vcbClosed || cub.rackingTurns !== 0)) {
-          triggerViolation(15, 'Castell Key Trapped in VCB', 'VCB must be OPEN and at DISCONNECTED (0/20) to release key.');
+          triggerViolation(5, 'Castell Key Trapped in VCB', 'VCB must be OPEN and at DISCONNECTED (0/20) to release key.');
           return;
         }
         if (!cub.isHV && cub.vcbClosed) {
-          triggerViolation(15, 'Castell Key Trapped in ACB', '440 V ACB must be OPEN [O] to release K-LV.');
+          triggerViolation(5, 'Castell Key Trapped in ACB', '440 V ACB must be OPEN [O] to release K-LV.');
           return;
         }
         cub.castellLockedOut = true;
@@ -2432,7 +3121,7 @@
         logEvent(`${cub.id}: Castell key ${kId} extracted to hand.`, 'safe');
       } else {
         if (SIM.keys[kId] !== 'HAND') {
-          triggerViolation(10, 'Key Not in Hand', `Key ${kId} is currently at ${SIM.keys[kId]}. Extract from Earth Switch first.`);
+          triggerViolation(5, 'Key Not in Hand', `Key ${kId} is currently at ${SIM.keys[kId]}. Extract from Earth Switch first.`);
           return;
         }
         cub.castellLockedOut = false;
@@ -2450,7 +3139,7 @@
       const has = cub.earthKeysInserted.includes(kId);
       if (!has) {
         if (SIM.keys[kId] !== 'HAND') {
-          triggerViolation(10, 'Key Not in Hand', `Castell key ${kId} is at ${SIM.keys[kId] || 'VCB'}. Extract it first.`);
+          triggerViolation(5, 'Key Not in Hand', `Castell key ${kId} is at ${SIM.keys[kId] || 'VCB'}. Extract it first.`);
           return;
         }
         cub.earthKeysInserted.push(kId);
@@ -2459,7 +3148,7 @@
         logEvent(`${cub.id}: Key ${kId} inserted into Earth Switch cylinder.`, 'info');
       } else {
         if (cub.earthSwitchClosed) {
-          triggerViolation(15, 'Key Trapped in Closed Earth Switch', 'Open Integral Earth Switch before extracting key.');
+          triggerViolation(5, 'Key Trapped in Closed Earth Switch', 'Open Integral Earth Switch before extracting key.');
           return;
         }
         cub.earthKeysInserted = cub.earthKeysInserted.filter(k => k !== kId);
@@ -2476,7 +3165,7 @@
       if (!cub.isHV) return;
       if (!cub.earthSwitchClosed) {
         if (cub.vcbClosed || cub.rackingTurns !== 0) {
-          triggerViolation(25, 'Cannot Earth Non-Disconnected Breaker Slot', 'Rack VCB out to DISCONNECTED (0/20) first.');
+          triggerViolation(5, 'Cannot Earth Non-Disconnected Breaker Slot', 'Closing an earth switch while the 6.6 kV breaker is in-slot causes a 3-phase busbar earth fault. Rack VCB out to DISCONNECTED (0/20) first.', true);
           return;
         }
         const req = cub.requiredEarthKeys || [];
@@ -2488,7 +3177,7 @@
         });
         const missing = req.filter(k => !cub.earthKeysInserted.includes(k));
         if (missing.length > 0) {
-          triggerViolation(20, 'Missing Castell Key(s) for Earth Switch', `Requires [${missing.join(', ')}] inserted in cylinder.`);
+          triggerViolation(5, 'Missing Castell Key(s) for Earth Switch', `Requires [${missing.join(', ')}] inserted in cylinder.`);
           return;
         }
         cub.earthSwitchClosed = true;
@@ -2497,7 +3186,7 @@
         logEvent(`${cub.id}: Integral EK6 Earth Switch CLOSED (circuit earthed).`, 'safe');
       } else {
         if (cub.earthPadlocked) {
-          triggerViolation(10, 'Earth Switch Padlocked', 'Remove earth switch padlock before opening.');
+          triggerViolation(5, 'Earth Switch Padlocked', 'Remove earth switch padlock before opening.');
           return;
         }
         cub.earthSwitchClosed = false;
@@ -2541,11 +3230,11 @@
       if (layer === 'INTERIOR') {
         if (!checkPpe('Open Enclosure Door')) return;
         if (cub.rackingTurns !== 0) {
-          triggerViolation(20, 'Door Interlocked: VCB In-Slot', 'Rack VCB carriage to DISCONNECTED (0/20) first.');
+          triggerViolation(5, 'Door Interlocked: VCB In-Slot', 'Opening an energized HV compartment while VCB is in SERVICE/TEST exposes personnel to 6.6 kV arc-flash. Rack VCB to DISCONNECTED (0/20) first.', cub.vcbClosed);
           return;
         }
         if (!cub.earthSwitchClosed && !cub.sftDoorBypass && !SIM.sft.active) {
-          triggerViolation(20, 'Door Interlocked: Earth Switch Open', 'Close Integral Earth Switch (or issue SFT) before opening door.');
+          triggerViolation(5, 'Door Interlocked: Earth Switch Open', 'Opening an unearthed 6.6 kV compartment exposes operator to lethal capacitive or back-fed voltage. Close Integral Earth Switch first.', true);
           return;
         }
         cub.doorOpen = true;
@@ -2623,11 +3312,11 @@
         }
         if (volts > 0) {
           AudioEngine.playPiezo(true);
-          triggerViolation(30, `LIVE VOLTAGE DETECTED ON ${cubId} ${term}`, `Feeder is still energized at ${volts} V!`);
+          triggerViolation(5, `LIVE VOLTAGE DETECTED ON ${cubId} ${term}`, `Feeder is still energized at ${volts} V (check upstream VCB, 440 V step-up back-feed, or stored Megger DC charge)!`, true);
           return;
         }
         if (SIM.ptp.state === 0) {
-          triggerViolation(15, 'Probed Phase Before Proving Wand', 'Always prove the 6.6 kV wand on a known proving unit before testing.');
+          triggerViolation(5, 'Probed Phase Before Proving Wand', 'Always prove the 6.6 kV wand on a known proving unit before testing.');
           return;
         }
         SIM.ptp.phasesTested[term] = true;
@@ -2644,7 +3333,7 @@
 
       if (SIM.activeTool === 'PORTABLE_EARTH') {
         if (volts > 0) {
-          triggerViolation(50, `Arc-Flash: Applied Portable Earth to Live Terminal (${volts} V)`, 'Catastrophic short-circuit.', true);
+          triggerViolation(5, `Arc-Flash: Applied Portable Earth to Live Terminal (${volts} V)`, 'Catastrophic short-circuit.', true);
           return;
         }
         if (term === 'PE') {
@@ -2654,7 +3343,7 @@
             logEvent('CME earth clamp bolted to Ship Hull Earth Bar (PE) first.', 'safe');
           } else {
             if (cub.cme.L1 || cub.cme.L2 || cub.cme.L3) {
-              triggerViolation(25, 'Removed PE Earth Clamp While Phase Clamps Attached', 'Remove L1, L2, L3 phase clamps first, and PE last.');
+              triggerViolation(5, 'Removed PE Earth Clamp While Phase Clamps Attached', 'Remove L1, L2, L3 phase clamps first, and PE last.');
               return;
             }
             cub.cme.pe = false;
@@ -2665,7 +3354,7 @@
         } else {
           if (!cub.cme[term]) {
             if (!cub.cme.pe) {
-              triggerViolation(25, 'Applied Phase Clamp Before PE Earth Clamp', 'Connect PE hull earth clamp first so lead is grounded.');
+              triggerViolation(5, 'Applied Phase Clamp Before PE Earth Clamp', 'Connect PE hull earth clamp first so lead is grounded.');
               return;
             }
             cub.cme[term] = true;
@@ -2907,6 +3596,9 @@
       // Right Panel Bay Controls (docked, clean, zero 3D viewport obstruction)
       renderBayControls(cub, topo);
 
+      // Priority #2: Direct 3D Context Popover / Quick-Action HUD
+      renderQuickActionHud(cub, topo);
+
       // Right Panel LOTO Strip
       document.getElementById('lotoStripVcb').textContent = cub.vcbClosed ? 'CLOSED · LIVE' : 'OPEN · SAFE';
       document.getElementById('lotoStripVcb').style.color = cub.vcbClosed ? 'var(--live)' : 'var(--safe)';
@@ -2918,8 +3610,215 @@
 
       renderLotoSteps();
       renderTutorialWalkthrough();
+
+      // Priority #4: Auto-switch Left Panel tab when step changes to a Tools/Keys/Megger step
+      syncLeftPanelTabForStep();
+
+      // Priority #3: Active Step Spotlight / Guided Pulse (Training mode only)
+      const wsGrid = document.getElementById('workspaceGrid');
+      if (wsGrid) wsGrid.classList.toggle('exam-mode', SIM.mode === 'EXAM');
+      applyStepSpotlights();
+
       if (window.onSimStateChanged) window.onSimStateChanged();
       checkCompletion();
+    }
+
+    /* 5A-2. PRIORITY #1-4 UI HELPERS (COLLAPSIBLE SIDEBARS, QUICK HUD, SPOTLIGHTS & LEFT TABS) */
+    function setLeftPanelTab(tabName) {
+      SIM.leftPanelTab = tabName === 'TOOLS_KEYS' ? 'TOOLS_KEYS' : 'MISSION_PPE';
+      const btn1 = document.getElementById('tabLeftMissionPpe');
+      const btn2 = document.getElementById('tabLeftToolsKeys');
+      const pane1 = document.getElementById('leftPaneMissionPpe');
+      const pane2 = document.getElementById('leftPaneToolsKeys');
+      const isTools = SIM.leftPanelTab === 'TOOLS_KEYS';
+      if (btn1) {
+        btn1.classList.toggle('active', !isTools);
+        btn1.setAttribute('aria-selected', String(!isTools));
+      }
+      if (btn2) {
+        btn2.classList.toggle('active', isTools);
+        btn2.setAttribute('aria-selected', String(isTools));
+      }
+      if (pane1) pane1.classList.toggle('active-pane', !isTools);
+      if (pane2) pane2.classList.toggle('active-pane', isTools);
+    }
+
+    function syncLeftPanelTabForStep() {
+      const steps = getLotoSteps();
+      const currentIdx = steps.findIndex(s => !s.done);
+      const stepKey = `${SIM.missionId}:${currentIdx}`;
+      if (SIM.lastAutoStepKey !== stepKey) {
+        SIM.lastAutoStepKey = stepKey;
+        const needsToolsTab =
+          (SIM.missionId === 1 && (currentIdx === 4 || currentIdx === 5)) ||
+          (SIM.missionId === 2 && (currentIdx === 3 || currentIdx === 4)) ||
+          (SIM.missionId === 3 && (currentIdx === 3 || currentIdx === 4)) ||
+          (SIM.missionId === 4 && (currentIdx === 2 || currentIdx === 3));
+        setLeftPanelTab(needsToolsTab ? 'TOOLS_KEYS' : 'MISSION_PPE');
+      } else {
+        setLeftPanelTab(SIM.leftPanelTab);
+      }
+    }
+
+    function updateSidebarToggleUI() {
+      const grid = document.getElementById('workspaceGrid');
+      const btnL = document.getElementById('btnCollapseLeft');
+      const btnR = document.getElementById('btnCollapseRight');
+      const btnT = document.getElementById('btnTheater3D');
+      if (!grid) return;
+      const lCol = grid.classList.contains('left-collapsed');
+      const rCol = grid.classList.contains('right-collapsed');
+      if (btnL) {
+        btnL.textContent = lCol ? '»' : '«';
+        btnL.classList.toggle('collapsed-state', lCol);
+        btnL.title = lCol ? 'Expand Left Panel' : 'Collapse Left Panel';
+      }
+      if (btnR) {
+        btnR.textContent = rCol ? '«' : '»';
+        btnR.classList.toggle('collapsed-state', rCol);
+        btnR.title = rCol ? 'Expand Right Panel' : 'Collapse Right Panel';
+      }
+      if (btnT) {
+        const isTheater = lCol && rCol;
+        btnT.classList.toggle('active', isTheater);
+        btnT.textContent = isTheater ? 'Exit Theater [F]' : 'Maximize 3D [F]';
+      }
+      if (typeof window.dispatchEvent === 'function' && typeof Event === 'function') {
+        window.dispatchEvent(new Event('resize'));
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
+      }
+    }
+
+    function toggleLeftSidebar() {
+      const grid = document.getElementById('workspaceGrid');
+      if (!grid) return;
+      grid.classList.toggle('left-collapsed');
+      updateSidebarToggleUI();
+    }
+
+    function toggleRightSidebar() {
+      const grid = document.getElementById('workspaceGrid');
+      if (!grid) return;
+      grid.classList.toggle('right-collapsed');
+      updateSidebarToggleUI();
+    }
+
+    function toggleTheater3D() {
+      const grid = document.getElementById('workspaceGrid');
+      if (!grid) return;
+      const bothCollapsed = grid.classList.contains('left-collapsed') && grid.classList.contains('right-collapsed');
+      if (bothCollapsed) {
+        grid.classList.remove('left-collapsed', 'right-collapsed');
+      } else {
+        grid.classList.add('left-collapsed', 'right-collapsed');
+      }
+      updateSidebarToggleUI();
+    }
+
+    function renderQuickActionHud(cub, topo) {
+      const hud = document.getElementById('quickActionHud');
+      if (!hud) return;
+      const bayVar = BAY_COLOR_VARS[cub.id] || 'var(--accent)';
+      const ppeBtn = !isFullPPE()
+        ? `<button type="button" class="btn btn-xs btn-primary" data-hud-act="ppe" onclick="document.getElementById('btnEquipAllPPE').click()">Don PPE</button>`
+        : '';
+
+      if (!cub.isHV) {
+        hud.innerHTML = `
+          <span class="qhud-bay-tag" style="--bay:${bayVar};"><span class="qhud-dot"></span>${cub.code} · ${cub.id}</span>
+          ${ppeBtn}
+          <button type="button" class="btn btn-xs btn-danger" data-hud-act="close" onclick="pressCloseVCB('${cub.id}')">Close [I]</button>
+          <button type="button" class="btn btn-xs btn-success" data-hud-act="trip" onclick="pressTripVCB('${cub.id}')">Trip [O]</button>
+          <button type="button" class="btn btn-xs ${cub.rackingPadlocked ? 'btn-success' : ''}" data-hud-act="padlock-port" onclick="toggleRackingPadlock('${cub.id}')">${cub.rackingPadlocked ? 'ACB Locked' : 'Padlock ACB'}</button>
+          <button type="button" class="btn btn-xs ${cub.castellLockedOut ? 'btn-success' : 'btn-primary'}" data-hud-act="castell-vcb" onclick="toggleCastellVCBLock('${cub.id}')">${cub.castellLockedOut ? 'Return K-LV' : 'Extract K-LV'}</button>
+        `;
+        return;
+      }
+
+      const kId = cub.castellKeyId;
+      const volts = cub.id === 'TR1-HV' ? topo.trVolts : topo.btVolts;
+      hud.innerHTML = `
+        <span class="qhud-bay-tag" style="--bay:${bayVar};"><span class="qhud-dot"></span>${cub.code} · ${cub.id} (${cub.rackingTurns}/20)</span>
+        ${ppeBtn}
+        <button type="button" class="btn btn-xs btn-danger" data-hud-act="close" onclick="pressCloseVCB('${cub.id}')">Close [I]</button>
+        <button type="button" class="btn btn-xs btn-success" data-hud-act="trip" onclick="pressTripVCB('${cub.id}')">Trip [O]</button>
+        <button type="button" class="btn btn-xs" data-hud-act="rack-out" onclick="rackVCB('${cub.id}', -10)">Rack -10</button>
+        <button type="button" class="btn btn-xs" data-hud-act="rack-in" onclick="rackVCB('${cub.id}', 10)">Rack +10</button>
+        <button type="button" class="btn btn-xs ${cub.rackingPadlocked ? 'btn-success' : ''}" data-hud-act="padlock-port" onclick="toggleRackingPadlock('${cub.id}')">${cub.rackingPadlocked ? 'Port Locked' : 'Padlock'}</button>
+        ${kId ? `<button type="button" class="btn btn-xs ${cub.castellLockedOut ? 'btn-success' : ''}" data-hud-act="castell-vcb" onclick="toggleCastellVCBLock('${cub.id}')">${cub.castellLockedOut ? `Ret ${kId}` : `Key ${kId}`}</button>` : ''}
+        <span class="qhud-sep"></span>
+        <button type="button" class="btn btn-xs ${cub.earthSwitchClosed ? 'btn-earth' : 'btn-primary'}" data-hud-act="earth-sw" onclick="toggleIntegralEarthSwitch('${cub.id}')">${cub.earthSwitchClosed ? 'Open Earth' : 'Close Earth'}</button>
+        <button type="button" class="btn btn-xs ${cub.earthPadlocked ? 'btn-success' : ''}" data-hud-act="earth-padlock" onclick="toggleEarthPadlock('${cub.id}')">${cub.earthPadlocked ? 'E-Locked' : 'Lock Earth'}</button>
+        <button type="button" class="btn btn-xs ${cub.doorOpen ? 'btn-primary' : ''}" data-hud-act="door" onclick="toggleDoor3D('${cub.id}')">${cub.doorOpen ? 'Close Door' : 'Open Door'}</button>
+        ${cub.doorOpen ? `
+          <button type="button" class="btn btn-xs ${cub.topShutterPadlocked ? 'btn-success' : 'btn-danger'}" data-hud-act="shutter" onclick="toggleShutterPadlock('${cub.id}')">${cub.topShutterPadlocked ? 'Shutter Locked' : 'Lock Shutter'}</button>
+          <button type="button" class="btn btn-xs btn-primary" data-hud-act="prove" onclick="proveTesterOnUnit()">Prove Wand</button>
+          <button type="button" class="btn btn-xs ${cub.cme.pe ? 'btn-success' : ''}" data-hud-act="term-pe" onclick="interactTerminal('${cub.id}', 'PE')">PE</button>
+          ${['L1', 'L2', 'L3'].map(p => `<button type="button" class="btn btn-xs ${cub.cme[p] ? 'btn-success' : volts > 0 ? 'btn-danger' : ''}" data-hud-act="term-${p}" onclick="interactTerminal('${cub.id}', '${p}')">${p}</button>`).join('')}
+        ` : ''}
+      `;
+    }
+
+    function applyStepSpotlights() {
+      document.querySelectorAll('.step-spotlight').forEach(el => el.classList.remove('step-spotlight'));
+      if (SIM.mode !== 'TRAIN') return;
+
+      const steps = getLotoSteps();
+      const currentIdx = steps.findIndex(s => !s.done);
+      if (currentIdx === -1) return;
+
+      const addSpot = (sel) => {
+        document.querySelectorAll(sel).forEach(el => el.classList.add('step-spotlight'));
+      };
+
+      // Highlight the active step's quick-execute button in the LOTO checklist
+      addSpot('#lotoStepsList .loto-step-card.active-step .step-action-bar .btn');
+
+      // Highlight specific controls for the active mission & step
+      if (currentIdx === 0) {
+        addSpot('#btnEquipAllPPE, #btnRollTest, #btnDonGloves, #btnDonSuit, #btnDonBoots, #quickActionHud [data-hud-act="ppe"]');
+        return;
+      }
+
+      const highlightBayPill = (targetId) => {
+        if (SIM.selectedCubicle !== targetId) {
+          addSpot(`#cubicleNavPills .cub-pill[data-c="${targetId}"]`);
+        }
+      };
+
+      if (SIM.missionId === 1) {
+        highlightBayPill('BT-M1');
+        if (currentIdx === 1) addSpot('#bayControls [onclick*="pressTripVCB"], #quickActionHud [data-hud-act="trip"]');
+        else if (currentIdx === 2) addSpot('#bayControls [onclick*="rackVCB"][onclick*="-10"], #quickActionHud [data-hud-act="rack-out"]');
+        else if (currentIdx === 3) addSpot('#bayControls [onclick*="toggleCastellVCBLock"], #bayControls [onclick*="toggleRackingPadlock"], #quickActionHud [data-hud-act="castell-vcb"], #quickActionHud [data-hud-act="padlock-port"]');
+        else if (currentIdx === 4) addSpot('#bayControls [onclick*="toggleEarthSwitchKey"], #bayControls [onclick*="toggleIntegralEarthSwitch"], #bayControls [onclick*="toggleEarthPadlock"], #btnToggleKeyBox, #quickActionHud [data-hud-act="earth-sw"], #quickActionHud [data-hud-act="earth-padlock"]');
+        else if (currentIdx === 5) addSpot('#bayControls [onclick*="toggleDoor3D"], #bayControls [onclick*="toggleShutterPadlock"], #bayControls [onclick*="proveTesterOnUnit"], #bayControls [onclick*="interactTerminal"], #btnFullPtwView, #quickActionHud [data-hud-act="door"], #quickActionHud [data-hud-act="shutter"], #quickActionHud [data-hud-act="prove"]');
+      } else if (SIM.missionId === 2) {
+        if (currentIdx === 1) {
+          highlightBayPill('ACB-TR1-LV');
+          addSpot('#bayControls [onclick*="pressTripVCB"], #bayControls [onclick*="toggleRackingPadlock"], #bayControls [onclick*="toggleCastellVCBLock"], #quickActionHud [data-hud-act="trip"], #quickActionHud [data-hud-act="padlock-port"], #quickActionHud [data-hud-act="castell-vcb"]');
+        } else {
+          highlightBayPill('TR1-HV');
+          if (currentIdx === 2) addSpot('#bayControls [onclick*="pressTripVCB"], #bayControls [onclick*="rackVCB"][onclick*="-10"], #bayControls [onclick*="toggleRackingPadlock"], #bayControls [onclick*="toggleCastellVCBLock"], #quickActionHud [data-hud-act="trip"], #quickActionHud [data-hud-act="rack-out"]');
+          else if (currentIdx === 3) addSpot('#bayControls [onclick*="toggleEarthSwitchKey"], #bayControls [onclick*="toggleIntegralEarthSwitch"], #bayControls [onclick*="toggleEarthPadlock"], #btnToggleKeyBox, #quickActionHud [data-hud-act="earth-sw"]');
+          else if (currentIdx === 4) addSpot('#bayControls [onclick*="toggleDoor3D"], #bayControls [onclick*="toggleShutterPadlock"], #bayControls [onclick*="proveTesterOnUnit"], #bayControls [onclick*="interactTerminal"], #toolbeltGrid [data-t="PORTABLE_EARTH"], #quickActionHud [data-hud-act="door"], #quickActionHud [data-hud-act="prove"]');
+          else if (currentIdx === 5) addSpot('#btnFullPtwView');
+        }
+      } else if (SIM.missionId === 3) {
+        highlightBayPill('BT-M1');
+        if (currentIdx === 1) addSpot('#btnFullPtwView');
+        else if (currentIdx === 2) addSpot('#bayControls [onclick*="toggleEarthPadlock"], #bayControls [onclick*="toggleIntegralEarthSwitch"], #quickActionHud [data-hud-act="earth-padlock"], #quickActionHud [data-hud-act="earth-sw"]');
+        else if (currentIdx === 3) addSpot('#btnConnectMeggerLeads, #btnExecuteMeggerTest');
+        else if (currentIdx === 4) addSpot('#btnBleedMeggerCharge');
+        else if (currentIdx === 5) addSpot('#bayControls [onclick*="toggleIntegralEarthSwitch"], #bayControls [onclick*="toggleEarthPadlock"], #btnFullPtwView, #quickActionHud [data-hud-act="earth-sw"]');
+      } else if (SIM.missionId === 4) {
+        highlightBayPill('BT-M1');
+        if (currentIdx === 1) addSpot('#btnFullPtwView');
+        else if (currentIdx === 2) addSpot('#toolbeltGrid [data-t="PORTABLE_EARTH"], #bayControls [onclick*="interactTerminal"], #quickActionHud [data-hud-act^="term-"]');
+        else if (currentIdx === 3) addSpot('#bayControls [onclick*="toggleShutterPadlock"], #bayControls [onclick*="toggleDoor3D"], #btnToggleKeyBox, #bayControls [onclick*="toggleEarthPadlock"], #bayControls [onclick*="toggleIntegralEarthSwitch"], #bayControls [onclick*="toggleEarthSwitchKey"], #bayControls [onclick*="toggleCastellVCBLock"], #quickActionHud [data-hud-act="door"], #quickActionHud [data-hud-act="earth-sw"]');
+        else if (currentIdx === 4) addSpot('#bayControls [onclick*="toggleRackingPadlock"], #bayControls [onclick*="rackVCB"][onclick*="10"], #bayControls [onclick*="pressCloseVCB"], #bayControls [onclick*="pressTripVCB"], #quickActionHud [data-hud-act="rack-in"], #quickActionHud [data-hud-act="close"], #quickActionHud [data-hud-act="trip"]');
+        else if (currentIdx === 5) addSpot('#bayControls [onclick*="rackVCB"][onclick*="10"], #quickActionHud [data-hud-act="rack-in"]');
+      }
     }
 
     /* 5B. RIGHT-SIDEBAR BAY OPERATOR CONTROLS */
@@ -3418,7 +4317,9 @@
       toggleCastellVCBLock, toggleEarthSwitchKey, toggleIntegralEarthSwitch,
       toggleEarthPadlock, toggleSafetyKeyBox, switchCubicleLayer, toggleDoor3D,
       toggleShutterPadlock, proveTesterOnUnit, interactTerminal,
-      connectMegger, runMegger, dischargeMegger, issuePTW, cancelPTW, issueSFT, cancelSFT, render
+      connectMegger, runMegger, dischargeMegger, issuePTW, cancelPTW, issueSFT, cancelSFT,
+      triggerViolation, triggerArcFlashDemo, dismissArcFlashBanner, openLastArcFlashModal,
+      setLeftPanelTab, toggleLeftSidebar, toggleRightSidebar, toggleTheater3D, render
     });
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -3461,6 +4362,30 @@
       document.getElementById('tabViewInterior').addEventListener('click', () => { switchCubicleLayer('INTERIOR', true); });
       document.getElementById('tabViewSLD').addEventListener('click', () => { SIM.viewMode = 'SLD'; render(); });
 
+      // Priority #4: Consolidated Left Panel Tabs
+      document.getElementById('tabLeftMissionPpe').addEventListener('click', () => {
+        AudioEngine.playRatchet();
+        setLeftPanelTab('MISSION_PPE');
+      });
+      document.getElementById('tabLeftToolsKeys').addEventListener('click', () => {
+        AudioEngine.playRatchet();
+        setLeftPanelTab('TOOLS_KEYS');
+      });
+
+      // Priority #1: Collapsible Sidebars & Theater 3D Mode + A2 Arc-Flash Demo
+      document.getElementById('btnCollapseLeft').addEventListener('click', toggleLeftSidebar);
+      document.getElementById('btnCollapseRight').addEventListener('click', toggleRightSidebar);
+      document.getElementById('btnTheater3D').addEventListener('click', toggleTheater3D);
+      document.getElementById('btnArcFlashDemo').addEventListener('click', triggerArcFlashDemo);
+
+      window.addEventListener('keydown', (e) => {
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
+        if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+          toggleTheater3D();
+        }
+      });
+
       document.getElementById('btnRollTest').addEventListener('click', () => {
         SIM.ppe.glovesAirTested = true;
         AudioEngine.playPiezo(false);
@@ -3469,7 +4394,7 @@
       });
       document.getElementById('btnDonGloves').addEventListener('click', () => {
         if (!SIM.ppe.glovesAirTested) {
-          triggerViolation(15, 'Donned Gloves Without Air-Test', 'Perform pneumatic roll air-test first.');
+          triggerViolation(5, 'Donned Gloves Without Air-Test', 'Perform pneumatic roll air-test first.');
           return;
         }
         SIM.ppe.gloves = !SIM.ppe.gloves;
@@ -3862,18 +4787,33 @@
       ctx.fillStyle = '#4b545a';
       ctx.fillText(`0..${maxVal}`, 20, 64);
 
-      const na = Math.PI + needleFrac * (Math.PI * 0.5);
-      ctx.strokeStyle = '#ad4337';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(px, py);
-      ctx.lineTo(px + Math.cos(na) * (r - 8), py + Math.sin(na) * (r - 8));
-      ctx.stroke();
+      // Scale numerals (0 / mid / full-scale) so the live needle can actually be read
+      const maxNum = Number(maxVal);
+      ctx.fillStyle = '#1f2529';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.textAlign = 'center';
+      [0, 5, 10].forEach((i) => {
+        const a = Math.PI + (i / 10) * (Math.PI * 0.5);
+        const lbl = String(Math.round(maxNum * i / 10 * 10) / 10);
+        ctx.fillText(lbl, px + Math.cos(a) * (r - 26), py + Math.sin(a) * (r - 26) + 4);
+      });
+      ctx.textAlign = 'left';
 
-      ctx.fillStyle = '#313c47';
-      ctx.beginPath();
-      ctx.arc(px, py, 9, 0, Math.PI * 2);
-      ctx.fill();
+      // needleFrac === null -> dial face only; a real 3D needle mesh is driven live by the simulation
+      if (needleFrac !== null) {
+        const na = Math.PI + needleFrac * (Math.PI * 0.5);
+        ctx.strokeStyle = '#ad4337';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + Math.cos(na) * (r - 8), py + Math.sin(na) * (r - 8));
+        ctx.stroke();
+
+        ctx.fillStyle = '#313c47';
+        ctx.beginPath();
+        ctx.arc(px, py, 9, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       const tex = new THREE.CanvasTexture(cv);
       tex.colorSpace = THREE.SRGBColorSpace;
@@ -3924,10 +4864,435 @@
       return tex;
     }
 
+    /* 4b. FUNCTIONAL LIVE PANELS - every item below is driven by (or documents) real simulator state */
+    const COL_LIVE = '#ad4337';   // energised
+    const COL_DEAD = '#7d8791';   // isolated / dead
+    const COL_EARTH = '#2f7450';  // earthed
+    const COL_AMBER = '#b8860b';
+    const COL_TEAL = '#1f6f78';
+
+    function makeCanvasTex(w, h) {
+      const cv = document.createElement('canvas');
+      cv.width = w;
+      cv.height = h;
+      const ctx = cv.getContext('2d');
+      const tex = new THREE.CanvasTexture(cv);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return { ctx, tex };
+    }
+
+    // Texture that redraws only when its state key changes (cheap: no per-frame canvas work)
+    function makeLivePanel(w, h, drawFn, initialState) {
+      const { ctx, tex } = makeCanvasTex(w, h);
+      let lastKey = '';
+      const panel = {
+        tex,
+        update(st) {
+          const key = JSON.stringify(st);
+          if (key === lastKey) return;
+          lastKey = key;
+          drawFn(ctx, w, h, st);
+          tex.needsUpdate = true;
+        }
+      };
+      panel.update(initialState);
+      return panel;
+    }
+
+    function mLine(ctx, x1, y1, x2, y2, col, lw) {
+      ctx.strokeStyle = col;
+      ctx.lineWidth = lw;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    // Live single-line mimic: busbar -> plug-in contacts -> breaker -> plug-in contacts -> cable/earth switch -> load.
+    // Colour = energised / dead / earthed; plug gap = truck position; breaker box = I (closed) / O (open).
+    function drawMimic(ctx, w, h, st) {
+      const live = (on) => (on ? COL_LIVE : COL_DEAD);
+      const isLV = st.kind === 'LV';
+      const x0 = 92;
+      ctx.fillStyle = '#f4f2ec';
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = '#9aa8b6';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(1.5, 1.5, w - 3, h - 3);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#1f2529';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(st.busLabel, 12, 20);
+
+      // Incoming busbar and drop
+      mLine(ctx, 12, 30, 176, 30, live(st.bus), 6);
+      const connected = isLV || st.rack === 20;
+      const gap = connected ? 0 : (st.rack === 10 ? 9 : 18);
+      const plug1 = 62;
+      const p1a = plug1 - gap / 2;
+      const p1b = plug1 + gap / 2;
+      mLine(ctx, x0, 30, x0, p1a, live(st.bus), 4);
+
+      // Upper plug-in contacts (busbar spouts <-> truck tulips)
+      const midLive = connected && st.bus;
+      if (connected) {
+        ctx.fillStyle = live(st.bus);
+        ctx.beginPath();
+        ctx.arc(x0, plug1, 5, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        mLine(ctx, x0 - 8, p1a, x0 + 8, p1a, live(st.bus), 4);
+        mLine(ctx, x0 - 6, p1b, x0 + 6, p1b, COL_DEAD, 4);
+      }
+      mLine(ctx, x0, p1b, x0, 82, live(midLive), 4);
+
+      // Breaker box (red I = closed, green O = open)
+      ctx.fillStyle = st.closed ? COL_LIVE : COL_EARTH;
+      ctx.fillRect(x0 - 14, 82, 28, 26);
+      ctx.strokeStyle = '#1f2529';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x0 - 14, 82, 28, 26);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(st.closed ? 'I' : 'O', x0, 102);
+      ctx.textAlign = 'left';
+
+      // Lower plug-in contacts (truck tulips <-> cable spouts)
+      const lowTruckLive = connected && (st.closed ? st.bus : st.load);
+      mLine(ctx, x0, 108, x0, 124 - gap / 2, live(lowTruckLive), 4);
+      const plug2 = 124;
+      const p2a = plug2 - gap / 2;
+      const p2b = plug2 + gap / 2;
+      if (connected) {
+        ctx.fillStyle = live(st.load);
+        ctx.beginPath();
+        ctx.arc(x0, plug2, 5, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        mLine(ctx, x0 - 6, p2a, x0 + 6, p2a, COL_DEAD, 4);
+        mLine(ctx, x0 - 8, p2b, x0 + 8, p2b, live(st.load), 4);
+      }
+      const loadTopY = (st.kind === 'BUSTIE' || isLV) ? 176 : 169;
+      mLine(ctx, x0, p2b, x0, loadTopY, live(st.load), 4);
+
+      // Integral earth switch (blade closed to earth = green)
+      if (!isLV) {
+        const esY = 146;
+        const ex = x0 - 40;
+        if (st.earthed) {
+          mLine(ctx, x0, esY, ex, esY, COL_EARTH, 3);
+        } else {
+          mLine(ctx, x0, esY, ex + 8, esY - 16, COL_DEAD, 3);
+          ctx.strokeStyle = COL_DEAD;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(ex, esY, 3, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        const ec = st.earthed ? COL_EARTH : COL_DEAD;
+        mLine(ctx, ex, esY, ex, 170, ec, 3);
+        mLine(ctx, ex - 9, 170, ex + 9, 170, ec, 3);
+        mLine(ctx, ex - 6, 176, ex + 6, 176, ec, 3);
+        mLine(ctx, ex - 3, 182, ex + 3, 182, ec, 3);
+        ctx.fillStyle = '#1f2529';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ES', ex, 195);
+        ctx.textAlign = 'left';
+      }
+
+      // Load symbol
+      ctx.strokeStyle = live(st.load);
+      ctx.fillStyle = live(st.load);
+      if (st.kind === 'BUSTIE' || isLV) {
+        mLine(ctx, 12, 180, 176, 180, live(st.load), 6);
+        ctx.fillStyle = '#1f2529';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(st.loadLabel, 12, 196);
+      } else {
+        ctx.lineWidth = 3;
+        if (st.kind === 'XFMR') {
+          ctx.beginPath(); ctx.arc(x0 - 7, 182, 11, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.arc(x0 + 7, 182, 11, 0, Math.PI * 2); ctx.stroke();
+        } else {
+          ctx.beginPath(); ctx.arc(x0, 182, 14, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = '#1f2529';
+          ctx.font = 'bold 15px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(st.kind === 'GEN' ? 'G' : 'M', x0, 188);
+          ctx.textAlign = 'left';
+        }
+        ctx.fillStyle = '#1f2529';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText(st.loadLabel, x0 + 22, 186);
+      }
+
+      // Position indicator (or ACB state for the fixed LV bay)
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillStyle = '#6b7780';
+      ctx.fillText(isLV ? 'ACB STATE' : 'TRUCK POSITION', 198, 30);
+      const pill = (label, y, active, fill) => {
+        ctx.fillStyle = active ? fill : '#ebe9e3';
+        ctx.fillRect(198, y, 90, 22);
+        ctx.strokeStyle = active ? '#1f2529' : '#b7bfc7';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(198, y, 90, 22);
+        ctx.fillStyle = active ? '#ffffff' : '#8a949c';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, 243, y + 16);
+        ctx.textAlign = 'left';
+      };
+      if (isLV) {
+        pill('CLOSED', 40, st.closed, COL_LIVE);
+        pill('OPEN', 68, !st.closed, COL_EARTH);
+      } else {
+        pill('SERVICE', 40, st.rack === 20, COL_TEAL);
+        pill('TEST', 68, st.rack === 10, COL_AMBER);
+        pill('DISCONNECTED', 96, st.rack === 0, COL_EARTH);
+      }
+
+      // Colour key
+      [['LIVE', COL_LIVE], ['DEAD', COL_DEAD], ['EARTH', COL_EARTH]].forEach(([t, col], i) => {
+        ctx.fillStyle = col;
+        ctx.fillRect(200, 128 + i * 16, 10, 10);
+        ctx.fillStyle = '#4b545a';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText(t, 216, 137 + i * 16);
+      });
+
+      // Back-feed / earthed call-out
+      if (st.backfed || st.earthed) {
+        ctx.fillStyle = st.backfed ? COL_LIVE : COL_EARTH;
+        ctx.fillRect(198, 176, 90, 20);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(st.backfed ? 'BACK-FEED!' : 'EARTHED', 243, 190);
+        ctx.textAlign = 'left';
+      }
+    }
+
+    // Door-mounted REF615 protection relay HMI (same live data as the relay inside the LV compartment)
+    function drawHmi(ctx, w, h, st) {
+      ctx.fillStyle = '#e7f2f3';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = COL_TEAL;
+      ctx.fillRect(0, 0, w, 24);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 13px monospace';
+      ctx.fillText(`REF615 \u00b7 ${st.tag}`, 8, 16);
+      ctx.fillStyle = '#1f2529';
+      ctx.font = 'bold 14px monospace';
+      const fmt = (v) => v.toFixed(1).padStart(5, ' ');
+      ctx.fillText(`IL1 ${fmt(st.amps)}`, 8, 46);
+      ctx.fillText(`IL2 ${fmt(st.amps * 0.995)}`, 8, 64);
+      ctx.fillText(`IL3 ${fmt(st.amps * 1.004)}`, 8, 82);
+      ctx.font = 'bold 13px monospace';
+      ctx.fillText(`${st.kV.toFixed(2)} kV`, 108, 46);
+      ctx.fillStyle = st.closed ? COL_LIVE : COL_EARTH;
+      ctx.fillText(st.closed ? '[I] CLOSED' : '[O] OPEN', 108, 64);
+      ctx.fillStyle = '#1f2529';
+      ctx.fillText(st.rack === 20 ? 'SERVICE' : (st.rack === 10 ? 'TEST' : 'DISCONN.'), 108, 82);
+      let bg = COL_AMBER;
+      let msg = 'READY \u00b7 CB OPEN';
+      if (st.backfed) { bg = COL_LIVE; msg = 'BACK-FEED!'; }
+      else if (st.earthed) { bg = COL_EARTH; msg = 'EARTHED'; }
+      else if (st.rack !== 20) { bg = '#6b7780'; msg = 'ISOLATED'; }
+      else if (st.closed && st.kV > 0) { bg = '#2f7450'; msg = 'IN SERVICE'; }
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 96, w, h - 96);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(msg, w / 2, 118);
+      ctx.textAlign = 'left';
+    }
+
+    const MIMIC_DEFAULT = { kind: 'MOTOR', busLabel: '6.6 kV BUS', loadLabel: '', bus: false, load: false, closed: false, rack: 20, earthed: false, backfed: false };
+    const HMI_DEFAULT = { tag: 'CB', amps: 0, kV: 0, closed: false, rack: 20, earthed: false, backfed: false };
+    const MIMIC_KINDS = {
+      'DG1': { kind: 'GEN', busLabel: '6.6 kV BUS A', loadLabel: 'DG1' },
+      'BT1': { kind: 'BUSTIE', busLabel: '6.6 kV BUS A', loadLabel: '6.6 kV BUS B' },
+      'BT-M1': { kind: 'MOTOR', busLabel: '6.6 kV BUS B', loadLabel: 'BOW THRUSTER' },
+      'TR1-HV': { kind: 'XFMR', busLabel: '6.6 kV BUS B', loadLabel: 'TR1' },
+      'ACB-TR1-LV': { kind: 'LV', busLabel: 'TR1 440 V SECONDARY', loadLabel: 'MSB 440 V BUS' }
+    };
+
+    // Engraved laminate legend strip (labels sit under pilot lamps / switches)
+    function makeLegendTexture(labels, pitchPx) {
+      const { ctx, tex } = makeCanvasTex(pitchPx * labels.length, 28);
+      ctx.fillStyle = '#f4f2ec';
+      ctx.fillRect(0, 0, pitchPx * labels.length, 28);
+      ctx.strokeStyle = '#9aa8b6';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(1, 1, pitchPx * labels.length - 2, 26);
+      ctx.fillStyle = '#1f2529';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      labels.forEach((t, i) => ctx.fillText(t, pitchPx * (i + 0.5), 18));
+      ctx.textAlign = 'left';
+      return tex;
+    }
+
+    // Door safety plate: arc-flash triangle + interlock instruction + switchgear rating plate
+    function makeDoorHazardTexture() {
+      const { ctx, tex } = makeCanvasTex(640, 100);
+      ctx.fillStyle = '#f9f6ee';
+      ctx.fillRect(0, 0, 640, 100);
+      ctx.strokeStyle = '#9aa8b6';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(1.5, 1.5, 637, 97);
+      ctx.fillStyle = '#f2c200';
+      ctx.strokeStyle = '#1f2529';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(46, 10); ctx.lineTo(86, 86); ctx.lineTo(8, 86); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#1f2529';
+      ctx.beginPath();
+      ctx.moveTo(50, 28); ctx.lineTo(35, 58); ctx.lineTo(45, 58); ctx.lineTo(40, 78);
+      ctx.lineTo(60, 46); ctx.lineTo(49, 46); ctx.lineTo(56, 28); ctx.closePath();
+      ctx.fill();
+      ctx.textAlign = 'left';
+      ctx.fillStyle = COL_LIVE;
+      ctx.font = 'bold 24px sans-serif';
+      ctx.fillText('DANGER \u00b7 6.6 kV', 104, 34);
+      ctx.fillStyle = '#1f2529';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText('ARC FLASH HAZARD \u2014 RACK BREAKER OUT TO', 104, 60);
+      ctx.fillText('DISCONNECTED BEFORE OPENING DOOR', 104, 80);
+      ctx.strokeStyle = '#1f2529';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(468, 10, 164, 80);
+      ctx.font = 'bold 13px monospace';
+      ctx.fillText('IEC 62271-200', 478, 30);
+      ctx.fillText('7.2 kV \u00b7 630 A', 478, 47);
+      ctx.fillText('25 kA / 3 s', 478, 64);
+      ctx.fillText('IAC AFLR 25kA/1s', 478, 81);
+      return tex;
+    }
+
+    function makeCoverLabelTexture() {
+      const { ctx, tex } = makeCanvasTex(480, 60);
+      ctx.fillStyle = '#f9f6ee';
+      ctx.fillRect(0, 0, 480, 60);
+      ctx.strokeStyle = '#9aa8b6';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(1, 1, 478, 58);
+      ctx.fillStyle = '#1f2529';
+      ctx.font = 'bold 17px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('CABLE BOX \u00b7 ISOLATE & EARTH BEFORE OPENING', 240, 26);
+      ctx.font = '600 13px sans-serif';
+      ctx.fillText('4 \u00d7 M6 CAPTIVE SCREWS \u00b7 TOOL REQUIRED', 240, 47);
+      ctx.textAlign = 'left';
+      return tex;
+    }
+
+    // Anti-slip ribbed deck plate for the operator floor
+    function makeDeckPlateTexture() {
+      const { ctx, tex } = makeCanvasTex(128, 128);
+      ctx.fillStyle = '#e9edf1';
+      ctx.fillRect(0, 0, 128, 128);
+      for (let i = 0; i < 16; i++) {
+        ctx.fillStyle = '#d0d6de';
+        ctx.fillRect(0, i * 8 + 1, 128, 3);
+        ctx.fillStyle = '#f7f9fb';
+        ctx.fillRect(0, i * 8 + 4, 128, 1);
+      }
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(40, 17);
+      return tex;
+    }
+
+    // Main Switchboard top canopy header plaque (as seen in reference photo 1)
+    function makeHeaderBannerTexture(text) {
+      const { ctx, tex } = makeCanvasTex(512, 56);
+      ctx.fillStyle = '#26313b';
+      ctx.fillRect(0, 0, 512, 56);
+      ctx.strokeStyle = '#c8d1da';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(3, 3, 506, 50);
+      ctx.fillStyle = '#f8f9fa';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, 256, 36);
+      ctx.textAlign = 'left';
+      return tex;
+    }
+
+    // Screen-printed breaker operator escutcheon face (VD4 / Terasaki style with racking directional markings)
+    function makeVcbFasciaTexture() {
+      const { ctx, tex } = makeCanvasTex(440, 370);
+      ctx.fillStyle = '#313c47';
+      ctx.fillRect(0, 0, 440, 370);
+      ctx.strokeStyle = '#6d7b88';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(6, 6, 428, 358);
+
+      // Header bar
+      ctx.fillStyle = '#232c35';
+      ctx.fillRect(10, 10, 420, 34);
+      ctx.fillStyle = '#e6ecf2';
+      ctx.font = 'bold 14px monospace';
+      ctx.fillText('ABB VD4-M · 7.2 kV · 1250 A · 40 kA', 20, 32);
+
+      // Pushbutton legends ([I] CLOSE / [O] OPEN)
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('CLOSE [I]', 100, 62);
+      ctx.fillText('OPEN [O]', 200, 62);
+      ctx.fillText('OPERATIONS', 350, 62);
+
+      // Status window labels
+      ctx.fillText('CB STATUS', 110, 152);
+      ctx.fillText('SPRING', 230, 152);
+      ctx.fillText('TRUCK POS.', 230, 228);
+      ctx.fillText('MANUAL CHARGE', 376, 122);
+
+      // Racking port instruction bezel at bottom
+      ctx.strokeStyle = '#dba328';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(136, 286, 168, 70);
+      ctx.fillStyle = '#f3c65f';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText('RACKING PORT · 20 TURNS', 220, 302);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText('\u21ba OUT     IN \u21bb', 220, 336);
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillText('CASTELL KEY', 80, 294);
+      ctx.fillText('LOTO HASP', 355, 294);
+      ctx.textAlign = 'left';
+      return tex;
+    }
+
+    plinthUpper.material.map = makeDeckPlateTexture();
+    plinthUpper.material.needsUpdate = true;
+
     const SHARED_TEX = {
-      ammeter: makeMeterDialTexture('A', '300', 0.66),
-      voltmeter: makeMeterDialTexture('kV', '7.2', 0.88),
-      lvVolt: makeMeterDialTexture('V', '500', 0.84),
+      ammeter: makeMeterDialTexture('A', '300', null),
+      voltmeter: makeMeterDialTexture('kV', '7.2', null),
+      lvVolt: makeMeterDialTexture('V', '500', null),
+      lvAmp: makeMeterDialTexture('A', '1000', null),
+      doorHazard: makeDoorHazardTexture(),
+      coverLabel: makeCoverLabelTexture(),
+      headerMSB: makeHeaderBannerTexture('MAIN SWITCHBOARD \u00b7 6.6 kV'),
+      headerLV: makeHeaderBannerTexture('440 V AUX SWITCHBOARD'),
+      vcbFascia: makeVcbFasciaTexture(),
+      lampLegend: makeLegendTexture(['CLOSED', 'OPEN', 'EARTHED', 'SERVICE'], 64),
+      lvLampLegend: makeLegendTexture(['CLOSED', 'OPEN', '440 V', 'BACK-FEED'], 96),
+      cviLegend: makeLegendTexture(['L1', 'L2', 'L3'], 64),
+      switchLegend: makeLegendTexture(['CB TRIP-NEUT-CLOSE', 'LOCAL / REMOTE'], 160),
+      posService: makeBadgeTexture('SERVICE', 'CONNECTED', '#1f6f78', '#ffffff', '#1f6f78'),
+      posTest: makeBadgeTexture('TEST', 'AUX ONLY', '#b8860b', '#ffffff', '#b8860b'),
+      posDisconn: makeBadgeTexture('DISCONN.', 'ISOLATED', '#2f7450', '#ffffff', '#2f7450'),
       iedScreen: makeIedScreenTexture(),
       counter: makeCounterTexture(),
       tagDanger: makeBadgeTexture('DANGER', 'DO NOT OPERATE', '#f9e9e6', '#ad4337', '#ad4337'),
@@ -4240,6 +5605,110 @@
       return g;
     }
 
+    /* 6b. FUNCTIONAL PANEL-FURNITURE BUILDERS (live meters, pilot lamps, legends, lens-bezel HMI) */
+    const LAMP_SPECS = {
+      red: { lit: 0xe0483b, dim: 0x7a2a24 },
+      green: { lit: 0x35b36a, dim: 0x1f4d34 },
+      amber: { lit: 0xffb62e, dim: 0x7a5a16 },
+      white: { lit: 0xffffff, dim: 0x8a9099 }
+    };
+
+    // Moving-iron style meter: dial face + REAL needle mesh pivoting about the dial's scale centre + cover glass
+    function addLiveMeter(parent, cubId, mx, my, tex, face, z) {
+      const bezel = regMesh(new THREE.Mesh(new THREE.BoxGeometry(face + 0.019, face + 0.019, 0.018), MAT.darkConsole), 'LD', cubId);
+      bezel.position.set(mx, my, z - 0.010);
+      const dial = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(face, face), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.25 })), 'LD', cubId, { castShadow: false });
+      dial.position.set(mx, my, z);
+      parent.add(bezel, dial);
+
+      const pivot = new THREE.Group();
+      pivot.position.set(mx + 0.325 * face, my - 0.325 * face, z + 0.0018);
+      const len = (90 / 160) * face;
+      const needle = regMesh(new THREE.Mesh(new THREE.BoxGeometry(len, 0.0024, 0.0014), MAT.shutterRed), 'LD', cubId, { castShadow: false });
+      needle.position.set(len / 2 - 0.004, 0, 0);
+      const hub = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0048, 0.0048, 0.003, 14), MAT.darkConsole), 'LD', cubId, { castShadow: false });
+      hub.rotation.x = Math.PI / 2;
+      pivot.add(needle, hub);
+      pivot.rotation.z = Math.PI;
+      parent.add(pivot);
+
+      const glass = new THREE.Mesh(new THREE.PlaneGeometry(face, face), MAT.windowGlass);
+      glass.position.set(mx, my, z + 0.0055);
+      parent.add(glass);
+      return pivot;
+    }
+
+    // Dial needle angle: 0..1 of full scale sweeps the 90 degree quadrant (small over-range allowed)
+    function needleRot(frac) {
+      return Math.PI - THREE.MathUtils.clamp(frac, 0, 1.04) * (Math.PI * 0.5);
+    }
+
+    // Row of panel pilot lamps (bezel ring + domed lens); returns [{mesh, lit, dim}] for state-driven lighting
+    function buildLampBank(parent, cubId, cx, cy, z, pitch, colors) {
+      return colors.map((c, i) => {
+        const sp = LAMP_SPECS[c];
+        const x = cx + (i - (colors.length - 1) / 2) * pitch;
+        const ring = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0145, 0.0145, 0.008, 18), MAT.silverContact), 'LD', cubId, { castShadow: false });
+        ring.rotation.x = Math.PI / 2;
+        ring.position.set(x, cy, z);
+        const lens = regMesh(new THREE.Mesh(new THREE.SphereGeometry(0.0108, 16, 10), new THREE.MeshStandardMaterial({ color: sp.dim, roughness: 0.25, metalness: 0.05 })), 'LD', cubId, { castShadow: false });
+        lens.scale.z = 0.55;
+        lens.position.set(x, cy, z + 0.005);
+        parent.add(ring, lens);
+        return { mesh: lens, lit: sp.lit, dim: sp.dim };
+      });
+    }
+
+    function setLamp(lamp, on) {
+      setMeshColor(lamp.mesh, on ? lamp.lit : lamp.dim, on ? lamp.lit : 0x000000, on ? 0.95 : 0.0);
+    }
+
+    // Engraved legend strip: n labels, pitchM metres apart, centred at (cx, cy)
+    function addLegend(parent, cubId, tex, n, pitchPx, cx, cy, z, pitchM) {
+      const width = pitchM * n;
+      const height = (28 / pitchPx) * pitchM;
+      const m = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(width, height), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.4 })), 'LD', cubId, { castShadow: false });
+      m.position.set(cx, cy, z);
+      parent.add(m);
+      return m;
+    }
+
+    // Marine switchboard storm grab-rail (tubular handrail with navy end brackets across the horizontal door seam)
+    function addStormHandrail(parent, partKey, cubId, width, y, z) {
+      const bracketMat = new THREE.MeshStandardMaterial({ color: 0x2f4a6b, roughness: 0.45, metalness: 0.25 });
+      const bx = width * 0.5 - 0.026;
+      [-bx, bx].forEach((x) => {
+        const brk = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.022, 0.022), bracketMat), partKey, cubId);
+        brk.position.set(x, y, z + 0.008);
+        parent.add(brk);
+      });
+      const bar = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0085, 0.0085, width - 0.04, 14), MAT.silverContact), partKey, cubId);
+      bar.rotation.z = Math.PI / 2;
+      bar.position.set(0, y, z + 0.018);
+      const grip = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.010, 0.010, width - 0.16, 14), MAT.darkConsole), partKey, cubId);
+      grip.rotation.z = Math.PI / 2;
+      grip.position.set(0, y, z + 0.018);
+      parent.add(bar, grip);
+    }
+
+    // Quantise bay state to the 3 truck positions used by the mimic / HMI
+    function rackPos(turns) {
+      return turns >= 20 ? 20 : (turns <= 0 ? 0 : 10);
+    }
+
+    // Live electrical quantities each bay's meters, relay HMI and mimic should show
+    function bayMetering(id, sim, topo) {
+      const c = sim.cubicles;
+      const btA = (topo.btVolts >= 6000 && c['BT-M1'].machineryRunning) ? 171 : 0;
+      const trA = (topo.trVolts >= 6000 && !topo.trBackfed) ? 36 : 0;
+      switch (id) {
+        case 'DG1': return { kV: topo.portLive ? 6.6 : 0, amps: topo.portLive ? btA + trA : 0, bus: topo.portLive, load: true, earthed: c['DG1'].earthSwitchClosed, backfed: false };
+        case 'BT1': return { kV: topo.stbdLive ? 6.6 : 0, amps: topo.stbdLive ? btA + trA : 0, bus: topo.portLive, load: topo.stbdLive, earthed: c['BT1'].earthSwitchClosed, backfed: false };
+        case 'BT-M1': return { kV: topo.btVolts / 1000, amps: btA, bus: topo.stbdLive, load: topo.btVolts > 0, earthed: topo.btEarthed, backfed: false };
+        default: return { kV: topo.trVolts / 1000, amps: trA, bus: topo.stbdLive, load: topo.trVolts > 0, earthed: topo.trEarthed, backfed: topo.trBackfed };
+      }
+    }
+
     /* 7. BUILD ULTRA-DETAILED 19-SUB-ASSEMBLY HV BAY (C1..C4) */
     const BAY_X = {
       'DG1': -1.68,
@@ -4296,6 +5765,14 @@
         subGroups.SK.add(hexBolt);
       });
 
+      // Navy front kick-plate (base plinth cover): hides anchor bolts / cable entry and protects the lower cover from boots
+      const kickPlate = regMesh(
+        new THREE.Mesh(new THREE.BoxGeometry(W - 0.04, 0.070, 0.012), new THREE.MeshStandardMaterial({ color: 0x2f4a6b, roughness: 0.55, metalness: 0.20 })),
+        'SK', cubId
+      );
+      kickPlate.position.set(0, 0.040, 0.566);
+      subGroups.SK.add(kickPlate);
+
       /* 02 · CF: FORM 4b SEGREGATED SHEET-STEEL FRAME, CORNER POSTS & PARTITIONS */
       [[-0.388, -0.61], [0.388, -0.61], [-0.388, 0.53], [0.388, 0.53]].forEach(([px, pz]) => {
         const post = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.022, 2.10, 0.024), MAT.steelTrim), 'CF', cubId);
@@ -4341,8 +5818,19 @@
       /* 03 · AR: ROOF ARC-FAULT RELIEF FLAPS, BRONZE FLAME MESH & EYEBOLTS */
       const roofPlate = regMesh(new THREE.Mesh(new THREE.BoxGeometry(W - 0.01, 0.018, 1.18), MAT.steelLight), 'AR', cubId, { isOuterXray: true });
       roofPlate.position.set(0, 2.19, -0.04);
-      subGroups.AR.add(roofPlate);
+      const canopyLip = regMesh(new THREE.Mesh(new THREE.BoxGeometry(W - 0.008, 0.030, 0.042), MAT.steelTrim), 'AR', cubId);
+      canopyLip.position.set(0, 2.186, 0.564);
+      subGroups.AR.add(roofPlate, canopyLip);
+      if (cubId === 'BT-M1') {
+        const msbHeader = regMesh(
+          new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.026), new THREE.MeshStandardMaterial({ map: SHARED_TEX.headerMSB, roughness: 0.35 })),
+          'AR', cubId, { castShadow: false }
+        );
+        msbHeader.position.set(0, 2.186, 0.586);
+        subGroups.AR.add(msbHeader);
+      }
 
+      const arFlaps = [];
       [0.18, -0.30].forEach((fz) => {
         const meshScreen = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.012, 0.28), MAT.bronzeMesh), 'AR', cubId);
         meshScreen.position.set(0, 2.205, fz);
@@ -4352,6 +5840,7 @@
         flap.position.set(0, 2.224, fz);
         flap.rotation.x = -0.08;
         subGroups.AR.add(flap);
+        arFlaps.push({ mesh: flap, baseY: 2.224, baseRotX: -0.08 });
 
         const hingePin = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.58, 10), MAT.galvSteel), 'AR', cubId);
         hingePin.rotation.z = Math.PI / 2;
@@ -4442,6 +5931,38 @@
         subGroups.FD.add(louver);
       }
 
+      // Door safety plate: arc-flash triangle, interlock instruction and IEC rating plate (swings with the door)
+      const hazardPlate = regMesh(
+        new THREE.Mesh(new THREE.PlaneGeometry(0.60, 0.094), new THREE.MeshStandardMaterial({ map: SHARED_TEX.doorHazard, roughness: 0.4 })),
+        'FD', cubId, { castShadow: false }
+      );
+      hazardPlate.position.set(dW * 0.5, 0.428, 0.0222);
+      doorHingeGroup.add(hazardPlate);
+
+      // Cable-box cover: dark vent opening behind the louvres (heat / arc-gas path), frame, label and 4 captive screws
+      const ventOpening = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.40, 0.13), new THREE.MeshStandardMaterial({ color: 0x1d242b, roughness: 0.8 })), 'FD', cubId, { castShadow: false });
+      ventOpening.position.set(0, 0.20, 0.5646);
+      subGroups.FD.add(ventOpening);
+      [0.27, 0.13].forEach((vy) => {
+        const vbar = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.012, 0.006), MAT.steelTrim), 'FD', cubId, { castShadow: false });
+        vbar.position.set(0, vy, 0.5655);
+        subGroups.FD.add(vbar);
+      });
+      [-0.206, 0.206].forEach((vx) => {
+        const vbar = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.14, 0.006), MAT.steelTrim), 'FD', cubId, { castShadow: false });
+        vbar.position.set(vx, 0.20, 0.5655);
+        subGroups.FD.add(vbar);
+      });
+      const coverLabel = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.38, 0.0475), new THREE.MeshStandardMaterial({ map: SHARED_TEX.coverLabel, roughness: 0.4 })), 'FD', cubId, { castShadow: false });
+      coverLabel.position.set(0, 0.395, 0.5646);
+      subGroups.FD.add(coverLabel);
+      [[-0.35, 0.115], [0.35, 0.115], [-0.35, 0.425], [0.35, 0.425]].forEach(([sx, sy]) => {
+        const screw = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0075, 0.0075, 0.006, 10), MAT.galvSteel), 'FD', cubId, { castShadow: false });
+        screw.rotation.x = Math.PI / 2;
+        screw.position.set(sx, sy, 0.5668);
+        subGroups.FD.add(screw);
+      });
+
       // Magnetic Safety Tags on VCB Door
       const tagDangerMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.23, 0.072), new THREE.MeshStandardMaterial({ map: SHARED_TEX.tagDanger, roughness: 0.4 }));
       tagDangerMesh.position.set(dW * 0.31, -0.27, 0.024);
@@ -4478,15 +5999,9 @@
       nameplate.position.set(-0.18, 2.05, 0.574);
       subGroups.LD.add(nameplate);
 
-      // Analog Ammeter & Voltmeter
-      [[0.08, 2.04, SHARED_TEX.ammeter], [0.24, 2.04, SHARED_TEX.voltmeter]].forEach(([mx, my, mTex]) => {
-        const mBezel = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.125, 0.125, 0.018), MAT.darkConsole), 'LD', cubId);
-        mBezel.position.set(mx, my, 0.576);
-        subGroups.LD.add(mBezel);
-        const mFace = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.106, 0.106), new THREE.MeshStandardMaterial({ map: mTex, roughness: 0.25 })), 'LD', cubId, { castShadow: false });
-        mFace.position.set(mx, my, 0.586);
-        subGroups.LD.add(mFace);
-      });
+      // Live Ammeter & Voltmeter (real needle meshes driven by the simulator)
+      const needleA = addLiveMeter(subGroups.LD, cubId, 0.08, 2.04, SHARED_TEX.ammeter, 0.106, 0.586);
+      const needleKV = addLiveMeter(subGroups.LD, cubId, 0.24, 2.04, SHARED_TEX.voltmeter, 0.106, 0.586);
 
       // CVI 3-Phase Voltage Detector Module + L1/L2/L3 LEDs + Test Sockets
       const cviBox = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.10, 0.018), MAT.darkConsole), 'LD', cubId);
@@ -4506,15 +6021,39 @@
         subGroups.LD.add(testJack);
       });
 
-      // Mimic Bus Line + Breaker Status Lamp + 2 Pistol-Grip Rotary Cam Switches
-      const mimicV = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.010, 0.16, 0.006), MAT.steelTrim), 'LD', cubId);
-      mimicV.position.set(-0.20, 1.66, 0.575);
-      subGroups.LD.add(mimicV);
+      // Door-mounted REF615 relay HMI + live single-line mimic + pilot-lamp bank (all state-driven in syncAndAnimate)
+      const mimicPanel = makeLivePanel(300, 200, drawMimic, { ...MIMIC_DEFAULT, ...MIMIC_KINDS[cubId] });
+      const hmiPanel = makeLivePanel(192, 128, drawHmi, { ...HMI_DEFAULT, tag: cubId === 'TR1-HV' ? 'TR1' : cubId });
 
-      const mimicLed = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.040, 0.040, 0.012), MAT.shutterRed), 'LD', cubId, { castShadow: false });
-      mimicLed.position.set(-0.20, 1.66, 0.580);
-      subGroups.LD.add(mimicLed);
+      const hmiBezel = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.145, 0.014), MAT.darkConsole), 'LD', cubId);
+      hmiBezel.position.set(-0.19, 1.91, 0.579);
+      const hmiLcd = regMesh(
+        new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.10), new THREE.MeshStandardMaterial({ map: hmiPanel.tex, emissive: 0xffffff, emissiveMap: hmiPanel.tex, emissiveIntensity: 0.35, roughness: 0.25 })),
+        'LD', cubId, { castShadow: false }
+      );
+      hmiLcd.position.set(-0.19, 1.915, 0.587);
+      subGroups.LD.add(hmiBezel, hmiLcd);
+      [-0.054, -0.018, 0.018, 0.054].forEach((kx) => {
+        const key = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.010, 0.006), MAT.silverContact), 'LD', cubId, { castShadow: false });
+        key.position.set(-0.19 + kx, 1.851, 0.588);
+        subGroups.LD.add(key);
+      });
 
+      const mimicFrame = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.312, 0.212, 0.006), MAT.darkConsole), 'LD', cubId);
+      mimicFrame.position.set(-0.19, 1.72, 0.575);
+      const mimicPlane = regMesh(
+        new THREE.Mesh(new THREE.PlaneGeometry(0.30, 0.20), new THREE.MeshStandardMaterial({ map: mimicPanel.tex, roughness: 0.45 })),
+        'LD', cubId, { castShadow: false }
+      );
+      mimicPlane.position.set(-0.19, 1.72, 0.5795);
+      subGroups.LD.add(mimicFrame, mimicPlane);
+
+      const lampBank = buildLampBank(subGroups.LD, cubId, -0.195, 1.575, 0.5735, 0.07, ['red', 'green', 'amber', 'white']);
+      addLegend(subGroups.LD, cubId, SHARED_TEX.lampLegend, 4, 64, -0.195, 1.543, 0.5735, 0.07);
+      addLegend(subGroups.LD, cubId, SHARED_TEX.cviLegend, 3, 64, 0.18, 1.8885, 0.5735, 0.068);
+      addLegend(subGroups.LD, cubId, SHARED_TEX.switchLegend, 2, 160, 0.15, 1.592, 0.5735, 0.18);
+
+      // 2 Pistol-Grip Rotary Cam Switches + Marine Storm Handrail
       [0.06, 0.24].forEach((sx, sIdx) => {
         const esc = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.056, 0.056, 0.012), MAT.darkConsole), 'LD', cubId);
         esc.position.set(sx, 1.64, 0.576);
@@ -4523,6 +6062,7 @@
         knob.rotation.z = sIdx === 0 ? -0.45 : 0.45;
         subGroups.LD.add(esc, knob);
       });
+      addStormHandrail(subGroups.LD, 'LD', cubId, dW, 1.505, 0.572);
 
       /* 06 · PR: ABB REF615 PROTECTION RELAY, DIN TERMINAL RAILS, MCBS & WIRING LOOM */
       const iedChassis = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.20, 0.22), MAT.iedCase), 'PR', cubId);
@@ -4534,7 +6074,7 @@
       subGroups.PR.add(iedFace);
 
       const iedLcd = regMesh(
-        new THREE.Mesh(new THREE.PlaneGeometry(0.145, 0.098), new THREE.MeshStandardMaterial({ map: SHARED_TEX.iedScreen, emissive: 0x1f6f78, emissiveIntensity: 0.14, roughness: 0.25 })),
+        new THREE.Mesh(new THREE.PlaneGeometry(0.145, 0.098), new THREE.MeshStandardMaterial({ map: hmiPanel.tex, emissive: 0x1f6f78, emissiveIntensity: 0.14, roughness: 0.25 })),
         'PR', cubId, { castShadow: false }
       );
       iedLcd.position.set(-0.165, 1.86, 0.506);
@@ -4596,111 +6136,416 @@
       subGroups.RL.add(earthingStrip, anchorBlock);
 
       /* 08 · TC: WITHDRAWABLE VCB CARRIAGE CHASSIS, FLANGED WHEELS & LEAD-SCREW */
-      const truckPan = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.050, 0.42), MAT.carriageSteel), 'TC', cubId);
-      truckPan.position.set(0, 0.556, 0.15);
-      subGroups.TC.add(truckPan);
+      const truckPan = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.036, 0.40), MAT.carriageSteel), 'TC', cubId);
+      truckPan.position.set(0, 0.552, 0.15);
+      const innerTray = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.010, 0.34), MAT.darkConsole), 'TC', cubId);
+      innerTray.position.set(0, 0.568, 0.15);
+      subGroups.TC.add(truckPan, innerTray);
 
-      [-0.24, 0.24].forEach((sx) => {
-        const cheek = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.072, 0.43), MAT.skidSteel), 'TC', cubId);
-        cheek.position.set(sx, 0.558, 0.15);
-        subGroups.TC.add(cheek);
+      // Front & rear heavy U-channel crossbeams + longitudinal stiffening ribs
+      [-0.042, 0.342].forEach((bz) => {
+        const beam = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.51, 0.054, 0.024), MAT.skidSteel), 'TC', cubId);
+        beam.position.set(0, 0.556, bz);
+        subGroups.TC.add(beam);
+        [-0.20, -0.10, 0.10, 0.20].forEach((bx) => {
+          const bolt = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0055, 0.0055, 0.008, 6), MAT.brass), 'TC', cubId, { castShadow: false });
+          bolt.position.set(bx, 0.585, bz);
+          subGroups.TC.add(bolt);
+        });
+      });
+      [-0.16, 0.0, 0.16].forEach((rx) => {
+        const rib = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.014, 0.36), MAT.galvSteel), 'TC', cubId);
+        rib.position.set(rx, 0.573, 0.15);
+        subGroups.TC.add(rib);
       });
 
-      const earthShoe = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.036, 0.018, 0.09), MAT.copper), 'TC', cubId);
-      earthShoe.position.set(-0.21, 0.504, 0.15);
-      subGroups.TC.add(earthShoe);
+      // Dual front pull-out extraction grab handles on the truck front beam
+      [-0.165, 0.165].forEach((hx) => {
+        [-0.032, 0.032].forEach((dx) => {
+          const leg = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.026, 10), MAT.silverContact), 'TC', cubId);
+          leg.rotation.x = Math.PI / 2;
+          leg.position.set(hx + dx, 0.556, 0.362);
+          subGroups.TC.add(leg);
+        });
+        const grip = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0065, 0.0065, 0.076, 12), MAT.darkConsole), 'TC', cubId);
+        grip.rotation.z = Math.PI / 2;
+        grip.position.set(hx, 0.556, 0.374);
+        subGroups.TC.add(grip);
+      });
 
-      const leadScrew = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.46, 14), MAT.brass), 'TC', cubId);
+      // Left & right side chassis cheeks + rail-locking detent pawls & release levers
+      [-0.245, 0.245].forEach((sx) => {
+        const cheek = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.070, 0.42), MAT.skidSteel), 'TC', cubId);
+        cheek.position.set(sx, 0.558, 0.15);
+        const topRail = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.008, 0.41), MAT.galvSteel), 'TC', cubId);
+        topRail.position.set(sx, 0.593, 0.15);
+        subGroups.TC.add(cheek, topRail);
+
+        // Spring-loaded rail interlock pawls & position index plungers
+        [0.06, 0.24].forEach((pz) => {
+          const pawlHousing = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.028, 0.038), MAT.brass), 'TC', cubId);
+          pawlHousing.position.set(sx + (sx > 0 ? 0.012 : -0.012), 0.548, pz);
+          const plungerPin = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.022, 10), MAT.silverContact), 'TC', cubId);
+          plungerPin.rotation.z = Math.PI / 2;
+          plungerPin.position.set(sx + (sx > 0 ? 0.016 : -0.016), 0.536, pz);
+          subGroups.TC.add(pawlHousing, plungerPin);
+        });
+        const releaseTab = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.022, 0.026), MAT.shutterRed), 'TC', cubId);
+        releaseTab.position.set(sx + (sx > 0 ? 0.008 : -0.008), 0.542, 0.355);
+        subGroups.TC.add(releaseTab);
+      });
+
+      // Multi-leaf sliding copper earthing shoe + flexible braided grounding strap
+      const earthShoe = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.018, 0.11), MAT.copper), 'TC', cubId);
+      earthShoe.position.set(-0.21, 0.504, 0.15);
+      const earthBracket = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.028, 0.06), MAT.brass), 'TC', cubId);
+      earthBracket.position.set(-0.21, 0.524, 0.15);
+      const earthBraidCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.21, 0.510, 0.19),
+        new THREE.Vector3(-0.19, 0.528, 0.22),
+        new THREE.Vector3(-0.22, 0.548, 0.24)
+      ]);
+      const earthBraid = regMesh(new THREE.Mesh(new THREE.TubeGeometry(earthBraidCurve, 10, 0.005, 6, false), MAT.copper), 'TC', cubId);
+      subGroups.TC.add(earthShoe, earthBracket, earthBraid);
+
+      // Central Acme lead-screw spindle, worm-gear box, bronze drive nut & twin guide rods
+      const leadScrew = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.45, 16), MAT.brass), 'TC', cubId);
       leadScrew.rotation.x = Math.PI / 2;
-      leadScrew.position.set(0, 0.526, 0.16);
-      subGroups.TC.add(leadScrew);
+      leadScrew.position.set(0, 0.526, 0.155);
+      const wormGearbox = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.048, 0.064), MAT.iedCase), 'TC', cubId);
+      wormGearbox.position.set(0, 0.530, 0.305);
+      const driveNutBlock = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.064, 0.040, 0.052), MAT.brass), 'TC', cubId);
+      driveNutBlock.position.set(0, 0.526, 0.16);
+      const rearBearingBlock = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.038, 0.032), MAT.skidSteel), 'TC', cubId);
+      rearBearingBlock.position.set(0, 0.526, -0.022);
+      subGroups.TC.add(leadScrew, wormGearbox, driveNutBlock, rearBearingBlock);
+
+      [-0.042, 0.042].forEach((gx) => {
+        const guideRod = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.39, 10), MAT.silverContact), 'TC', cubId);
+        guideRod.rotation.x = Math.PI / 2;
+        guideRod.position.set(gx, 0.526, 0.15);
+        subGroups.TC.add(guideRod);
+      });
 
       const wheelGroups = [];
       [[-0.265, 0.00], [0.265, 0.00], [-0.265, 0.30], [0.265, 0.30]].forEach(([wx, wz]) => {
         const wg = new THREE.Group();
         wg.position.set(wx, 0.526, wz);
-        const tread = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.030, 0.020, 18), MAT.skidSteel), 'TC', cubId);
+        const tread = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.030, 0.020, 20), MAT.skidSteel), 'TC', cubId);
         tread.rotation.z = Math.PI / 2;
-        const flange = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.006, 18), MAT.silverContact), 'TC', cubId);
+        const flange = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.006, 20), MAT.silverContact), 'TC', cubId);
         flange.rotation.z = Math.PI / 2;
         flange.position.x = wx > 0 ? 0.011 : -0.011;
+        const hubCap = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.026, 14), MAT.brass), 'TC', cubId);
+        hubCap.rotation.z = Math.PI / 2;
         const spokeA = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.046, 0.008), MAT.brass), 'TC', cubId);
         const spokeB = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.008, 0.046), MAT.brass), 'TC', cubId);
-        wg.add(tread, flange, spokeA, spokeB);
+        wg.add(tread, flange, hubCap, spokeA, spokeB);
+        for (let b = 0; b < 6; b++) {
+          const ang = (b / 6) * Math.PI * 2;
+          const stud = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0028, 0.0028, 0.025, 6), MAT.galvSteel), 'TC', cubId, { castShadow: false });
+          stud.rotation.z = Math.PI / 2;
+          stud.position.set(0, Math.cos(ang) * 0.020, Math.sin(ang) * 0.020);
+          wg.add(stud);
+        }
         subGroups.TC.add(wg);
         wheelGroups.push(wg);
       });
 
-      /* 09 · SD: SPRING-CHARGING MECHANISM, HELICAL SPRINGS, CAM, MOTOR & COILS */
-      const sdFrame = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.39, 0.11), MAT.carriageSteel), 'SD', cubId);
-      sdFrame.position.set(0, 0.83, 0.25);
-      subGroups.SD.add(sdFrame);
+      /* 09 · SD: OPEN-FRAME SPRING-CHARGING MECHANISM, RATCHET GEAR, CAM, DASHPOT, MOTOR & COILS */
+      // Open-architecture CNC steel mechanism frame (backplate, top/bottom bridges, side cheeks & internal bulkheads)
+      const sdBackPlate = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.456, 0.382, 0.014), MAT.carriageSteel), 'SD', cubId);
+      sdBackPlate.position.set(0, 0.830, 0.205);
+      const sdTopBridge = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.456, 0.016, 0.118), MAT.skidSteel), 'SD', cubId);
+      sdTopBridge.position.set(0, 1.014, 0.258);
+      const sdBotBridge = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.456, 0.018, 0.118), MAT.skidSteel), 'SD', cubId);
+      sdBotBridge.position.set(0, 0.646, 0.258);
+      const sdMidShelf = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.180, 0.012, 0.106), MAT.galvSteel), 'SD', cubId);
+      sdMidShelf.position.set(0, 0.928, 0.260);
+      subGroups.SD.add(sdBackPlate, sdTopBridge, sdBotBridge, sdMidShelf);
 
-      const closeSpring = buildHelicalSpring(0.034, 0.25, 8, 0.0065, MAT.springCloseGreen, 'SD', cubId);
-      closeSpring.position.set(-0.15, 0.84, 0.28);
-      subGroups.SD.add(closeSpring);
-
-      const tripSpring = buildHelicalSpring(0.026, 0.21, 7, 0.0055, MAT.springTripRed, 'SD', cubId);
-      tripSpring.position.set(0.15, 0.84, 0.28);
-      subGroups.SD.add(tripSpring);
-
-      const camDisc = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.058, 0.024, 20), MAT.brass), 'SD', cubId);
-      camDisc.rotation.x = Math.PI / 2;
-      camDisc.position.set(0, 0.86, 0.315);
-      const jackShaft = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.44, 12), MAT.galvSteel), 'SD', cubId);
-      jackShaft.rotation.z = Math.PI / 2;
-      jackShaft.position.set(0, 0.72, 0.26);
-      const chargeMotor = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.14, 16), MAT.darkConsole), 'SD', cubId);
-      chargeMotor.rotation.z = Math.PI / 2;
-      chargeMotor.position.set(-0.06, 0.67, 0.30);
-      subGroups.SD.add(camDisc, jackShaft, chargeMotor);
-
-      // Y1 Close & Y2 Shunt Trip Solenoid Coils
-      [-0.045, 0.045].forEach((cx, cIdx) => {
-        const coil = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.064, 0.048), cIdx === 0 ? MAT.phaseL3 : MAT.phaseL1), 'SD', cubId);
-        coil.position.set(cx, 0.98, 0.30);
-        subGroups.SD.add(coil);
+      // Left/right outer side plates + 2 internal vertical bearing bulkheads
+      [-0.222, -0.088, 0.088, 0.222].forEach((px, pIdx) => {
+        const isOuter = pIdx === 0 || pIdx === 3;
+        const plate = regMesh(
+          new THREE.Mesh(new THREE.BoxGeometry(isOuter ? 0.012 : 0.009, 0.354, isOuter ? 0.114 : 0.102), isOuter ? MAT.carriageSteel : MAT.galvSteel),
+          'SD', cubId
+        );
+        plate.position.set(px, 0.830, 0.258);
+        subGroups.SD.add(plate);
       });
 
+      // 6 Hexagonal steel tie-rod standoffs with brass cap nuts
+      [[-0.206, 0.994], [0.206, 0.994], [-0.206, 0.830], [0.206, 0.830], [-0.206, 0.666], [0.206, 0.666]].forEach(([tx, ty]) => {
+        const tieRod = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.116, 6), MAT.silverContact), 'SD', cubId);
+        tieRod.rotation.x = Math.PI / 2;
+        tieRod.position.set(tx, ty, 0.262);
+        const capNut = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0085, 0.0085, 0.010, 6), MAT.brass), 'SD', cubId);
+        capNut.rotation.x = Math.PI / 2;
+        capNut.position.set(tx, ty, 0.322);
+        subGroups.SD.add(tieRod, capNut);
+      });
+
+      // Left Bay: Dual-Stage Helical Closing Spring + Telescopic Guide Tube + Seats + Clevis Rod
+      const closeSpring = buildHelicalSpring(0.034, 0.24, 9, 0.0068, MAT.springCloseGreen, 'SD', cubId);
+      closeSpring.position.set(-0.155, 0.842, 0.276);
+      const closeGuideTube = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.26, 14), MAT.silverContact), 'SD', cubId);
+      closeGuideTube.position.set(-0.155, 0.842, 0.276);
+      [0.720, 0.964].forEach((sy) => {
+        const seat = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.014, 18), MAT.brass), 'SD', cubId);
+        seat.position.set(-0.155, sy, 0.276);
+        subGroups.SD.add(seat);
+      });
+      const closeTensionStud = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.048, 10), MAT.brass), 'SD', cubId);
+      closeTensionStud.position.set(-0.155, 0.985, 0.276);
+      const closeChainLink = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.018, 0.014), MAT.skidSteel), 'SD', cubId);
+      closeChainLink.position.set(-0.105, 0.722, 0.292);
+      closeChainLink.rotation.z = 0.22;
+      subGroups.SD.add(closeSpring, closeGuideTube, closeTensionStud, closeChainLink);
+
+      // Right Bay: Helical Tripping Spring + Guide Rod + Hydraulic Closing Dashpot (Shock Absorber)
+      const tripSpring = buildHelicalSpring(0.025, 0.20, 8, 0.0056, MAT.springTripRed, 'SD', cubId);
+      tripSpring.position.set(0.140, 0.858, 0.276);
+      const tripGuideRod = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.23, 12), MAT.silverContact), 'SD', cubId);
+      tripGuideRod.position.set(0.140, 0.858, 0.276);
+      [0.755, 0.960].forEach((sy) => {
+        const seat = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.029, 0.029, 0.012, 16), MAT.brass), 'SD', cubId);
+        seat.position.set(0.140, sy, 0.276);
+        subGroups.SD.add(seat);
+      });
+      subGroups.SD.add(tripSpring, tripGuideRod);
+
+      // Hydraulic Oil Dashpot (Closing Damper) at x = 0.190
+      const dashpotBody = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.11, 14), MAT.iedCase), 'SD', cubId);
+      dashpotBody.position.set(0.190, 0.720, 0.280);
+      const dashpotPiston = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.07, 10), MAT.silverContact), 'SD', cubId);
+      dashpotPiston.position.set(0.190, 0.795, 0.280);
+      for (let df = 0; df < 5; df++) {
+        const fin = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.005, 14), MAT.galvSteel), 'SD', cubId, { castShadow: false });
+        fin.position.set(0.190, 0.688 + df * 0.016, 0.280);
+        subGroups.SD.add(fin);
+      }
+      subGroups.SD.add(dashpotBody, dashpotPiston);
+
+      // Center Bay: 24-Tooth Ratchet Gear Wheel, Contoured Brass Cam Disc, Pawl & Toggle Rocker
+      const ratchetWheel = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.058, 0.016, 24), MAT.skidSteel), 'SD', cubId);
+      ratchetWheel.rotation.x = Math.PI / 2;
+      ratchetWheel.position.set(0, 0.850, 0.286);
+      subGroups.SD.add(ratchetWheel);
+      for (let t = 0; t < 24; t++) {
+        const ang = (t / 24) * Math.PI * 2;
+        const tooth = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.007, 0.010, 0.016), MAT.galvSteel), 'SD', cubId, { castShadow: false });
+        tooth.position.set(Math.cos(ang) * 0.060, 0.850 + Math.sin(ang) * 0.060, 0.286);
+        tooth.rotation.z = ang + 0.25;
+        subGroups.SD.add(tooth);
+      }
+
+      const camDisc = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.044, 0.044, 0.020, 20), MAT.brass), 'SD', cubId);
+      camDisc.rotation.x = Math.PI / 2;
+      camDisc.position.set(0, 0.850, 0.304);
+      const camLobe = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.034, 0.022, 16), MAT.brass), 'SD', cubId);
+      camLobe.rotation.x = Math.PI / 2;
+      camLobe.position.set(-0.014, 0.834, 0.305);
+      const camHub = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.032, 14), MAT.silverContact), 'SD', cubId);
+      camHub.rotation.x = Math.PI / 2;
+      camHub.position.set(0, 0.850, 0.308);
+      subGroups.SD.add(camDisc, camLobe, camHub);
+
+      // Charging pawl, holding latch & main toggle rocker arm to jackshaft
+      const chargePawl = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.012, 0.014), MAT.brass), 'SD', cubId);
+      chargePawl.position.set(0.048, 0.896, 0.288);
+      chargePawl.rotation.z = -0.45;
+      const toggleRocker = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.096, 0.018), MAT.galvSteel), 'SD', cubId);
+      toggleRocker.position.set(0.018, 0.778, 0.278);
+      toggleRocker.rotation.z = -0.18;
+      const camFollowerRoller = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.024, 12), MAT.silverContact), 'SD', cubId);
+      camFollowerRoller.rotation.x = Math.PI / 2;
+      camFollowerRoller.position.set(0.010, 0.812, 0.296);
+      subGroups.SD.add(chargePawl, toggleRocker, camFollowerRoller);
+
+      // 3-Pole Main Operating Jackshaft + 4 Pillow Bearings + 3 Phase Bell-Crank Levers
+      const jackShaft = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.44, 14), MAT.galvSteel), 'SD', cubId);
+      jackShaft.rotation.z = Math.PI / 2;
+      jackShaft.position.set(0, 0.718, 0.246);
+      subGroups.SD.add(jackShaft);
+      [-0.21, -0.088, 0.088, 0.21].forEach((bx) => {
+        const bearing = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.036, 0.036), MAT.brass), 'SD', cubId);
+        bearing.position.set(bx, 0.718, 0.246);
+        subGroups.SD.add(bearing);
+      });
+      [-0.19, 0.0, 0.19].forEach((px) => {
+        const bellCrank = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.026, 0.056), MAT.skidSteel), 'SD', cubId);
+        bellCrank.position.set(px, 0.726, 0.224);
+        const clevisPin = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.028, 10), MAT.brass), 'SD', cubId);
+        clevisPin.rotation.z = Math.PI / 2;
+        clevisPin.position.set(px, 0.732, 0.204);
+        subGroups.SD.add(bellCrank, clevisPin);
+      });
+
+      // Finned 220 V DC Geared Charging Motor + Right-Angle Worm Gearbox
+      const chargeMotor = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.125, 16), MAT.darkConsole), 'SD', cubId);
+      chargeMotor.rotation.z = Math.PI / 2;
+      chargeMotor.position.set(-0.048, 0.674, 0.296);
+      const motorEndCap = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.032, 0.018, 16), MAT.copper), 'SD', cubId);
+      motorEndCap.rotation.z = Math.PI / 2;
+      motorEndCap.position.set(-0.116, 0.674, 0.296);
+      const motorGearbox = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.054, 0.050), MAT.galvSteel), 'SD', cubId);
+      motorGearbox.position.set(0.034, 0.674, 0.294);
+      const eccentricRod = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.16, 8), MAT.brass), 'SD', cubId);
+      eccentricRod.position.set(0.052, 0.768, 0.298);
+      eccentricRod.rotation.z = -0.08;
+      subGroups.SD.add(chargeMotor, motorEndCap, motorGearbox, eccentricRod);
+      for (let mf = 0; mf < 6; mf++) {
+        const fin = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.004, 16), MAT.iedCase), 'SD', cubId, { castShadow: false });
+        fin.rotation.z = Math.PI / 2;
+        fin.position.set(-0.092 + mf * 0.017, 0.674, 0.296);
+        subGroups.SD.add(fin);
+      }
+
+      // 3 Solenoid Release Coils: Y1 (Close - Blue), Y2 (Shunt Trip - Red), MU (Undervoltage - Amber)
+      [
+        { cx: -0.056, mat: MAT.phaseL3 },
+        { cx: 0.000, mat: MAT.phaseL1 },
+        { cx: 0.056, mat: MAT.shutterYellow }
+      ].forEach(({ cx, mat }) => {
+        const yoke = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.046, 0.058, 0.044), MAT.galvSteel), 'SD', cubId);
+        yoke.position.set(cx, 0.968, 0.284);
+        const bobbin = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.040, 0.046, 0.048), mat), 'SD', cubId);
+        bobbin.position.set(cx, 0.968, 0.288);
+        const copperCore = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.050, 12), MAT.copper), 'SD', cubId);
+        copperCore.rotation.x = Math.PI / 2;
+        copperCore.position.set(cx, 0.968, 0.290);
+        const plunger = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.028, 10), MAT.silverContact), 'SD', cubId);
+        plunger.position.set(cx, 0.935, 0.292);
+        subGroups.SD.add(yoke, bobbin, copperCore, plunger);
+      });
+      const tripPaddleBar = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.156, 0.008, 0.014), MAT.brass), 'SD', cubId);
+      tripPaddleBar.position.set(0, 0.922, 0.294);
+      subGroups.SD.add(tripPaddleBar);
+
+      // 6-Deck Rotary Auxiliary Switch Bank (S1..S4) + Terminal Pins
+      const auxSwitchBank = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.044, 0.082, 0.056), MAT.iedCase), 'SD', cubId);
+      auxSwitchBank.position.set(0.142, 0.962, 0.252);
+      subGroups.SD.add(auxSwitchBank);
+      for (let d = 0; d < 5; d++) {
+        const deckWafer = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.006, 0.060), MAT.dinBlock), 'SD', cubId, { castShadow: false });
+        deckWafer.position.set(0.142, 0.930 + d * 0.015, 0.252);
+        const termPin = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.056, 0.004, 0.006), MAT.brass), 'SD', cubId, { castShadow: false });
+        termPin.position.set(0.142, 0.930 + d * 0.015, 0.282);
+        subGroups.SD.add(deckWafer, termPin);
+      }
+
       /* 10 · MF: BREAKER OPERATOR ESCUTCHEON, PUSHBUTTONS, FLAGS, COUNTER & LOCKS */
-      const fasciaShell = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.42, 0.032), MAT.steelLight), 'MF', cubId);
+      const fasciaShell = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.42, 0.030), MAT.steelLight), 'MF', cubId);
       fasciaShell.position.set(0, 0.84, 0.376);
-      const fasciaPlate = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.37, 0.012), MAT.darkConsole), 'MF', cubId);
-      fasciaPlate.position.set(0, 0.84, 0.394);
-      subGroups.MF.add(fasciaShell, fasciaPlate);
+      const fasciaOuterBezel = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.456, 0.386, 0.008), MAT.steelTrim), 'MF', cubId);
+      fasciaOuterBezel.position.set(0, 0.84, 0.392);
+      const fasciaPlate = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.37, 0.010), MAT.darkConsole), 'MF', cubId);
+      fasciaPlate.position.set(0, 0.84, 0.395);
+      const fasciaScreen = regMesh(
+        new THREE.Mesh(new THREE.PlaneGeometry(0.436, 0.366), new THREE.MeshStandardMaterial({ map: SHARED_TEX.vcbFascia, roughness: 0.38 })),
+        'MF', cubId, { castShadow: false }
+      );
+      fasciaScreen.position.set(0, 0.84, 0.4008);
+      subGroups.MF.add(fasciaShell, fasciaOuterBezel, fasciaPlate, fasciaScreen);
 
-      const btnClose3D = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.020, 0.020, 0.018, 16), MAT.shutterRed), 'MF', cubId);
+      // 8 Perimeter Stainless Socket Cap Screws + Left/Right Recessed Side Grab Handles
+      [
+        [-0.226, 1.032], [0.0, 1.032], [0.226, 1.032],
+        [-0.226, 0.840], [0.226, 0.840],
+        [-0.226, 0.648], [0.0, 0.648], [0.226, 0.648]
+      ].forEach(([sx, sy]) => {
+        const screw = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.006, 6), MAT.silverContact), 'MF', cubId, { castShadow: false });
+        screw.rotation.x = Math.PI / 2;
+        screw.position.set(sx, sy, 0.393);
+        subGroups.MF.add(screw);
+      });
+      [-0.230, 0.230].forEach((hx) => {
+        const sideGrip = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.010, 0.11, 0.016), MAT.steelTrim), 'MF', cubId);
+        sideGrip.position.set(hx, 0.84, 0.398);
+        subGroups.MF.add(sideGrip);
+      });
+
+      // Shrouded Pushbuttons: Red CLOSE [I] & Green OPEN [O] with Anti-Bump Metal Collars
+      [-0.12, -0.02].forEach((bx) => {
+        const shroud = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.025, 0.014, 18), MAT.silverContact), 'MF', cubId);
+        shroud.rotation.x = Math.PI / 2;
+        shroud.position.set(bx, 0.96, 0.403);
+        subGroups.MF.add(shroud);
+      });
+      const btnClose3D = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.019, 0.018, 16), MAT.shutterRed), 'MF', cubId);
       btnClose3D.rotation.x = Math.PI / 2;
-      btnClose3D.position.set(-0.12, 0.96, 0.404);
+      btnClose3D.position.set(-0.12, 0.96, 0.405);
 
-      const btnTrip3D = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.020, 0.020, 0.018, 16), MAT.earthGreen), 'MF', cubId);
+      const btnTrip3D = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.019, 0.018, 16), MAT.earthGreen), 'MF', cubId);
       btnTrip3D.rotation.x = Math.PI / 2;
-      btnTrip3D.position.set(-0.02, 0.96, 0.404);
+      btnTrip3D.position.set(-0.02, 0.96, 0.405);
 
-      const flagOpenClose = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.038, 0.010), MAT.shutterRed), 'MF', cubId);
+      // Mechanical Status Windows with Bezel Frames (CB STATUS, SPRING, TRUCK POS.)
+      [
+        { wx: -0.11, wy: 0.85, w: 0.090, h: 0.044 },
+        { wx: 0.01, wy: 0.85, w: 0.090, h: 0.044 },
+        { wx: 0.01, wy: 0.77, w: 0.090, h: 0.036 },
+        { wx: 0.13, wy: 0.96, w: 0.104, h: 0.036 }
+      ].forEach(({ wx, wy, w, h }) => {
+        const winBezel = regMesh(new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.005), MAT.steelTrim), 'MF', cubId, { castShadow: false });
+        winBezel.position.set(wx, wy, 0.400);
+        subGroups.MF.add(winBezel);
+      });
+
+      const flagOpenClose = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.036, 0.010), MAT.shutterRed), 'MF', cubId);
       flagOpenClose.position.set(-0.11, 0.85, 0.404);
 
-      const flagSpring = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.038, 0.010), MAT.shutterYellow), 'MF', cubId);
+      const flagSpring = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.036, 0.010), MAT.shutterYellow), 'MF', cubId);
       flagSpring.position.set(0.01, 0.85, 0.404);
+
+      const flagTruckPos = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.028, 0.008), MAT.earthGreen), 'MF', cubId);
+      flagTruckPos.position.set(0.01, 0.77, 0.404);
 
       const counterMesh = regMesh(
         new THREE.Mesh(new THREE.PlaneGeometry(0.095, 0.030), new THREE.MeshStandardMaterial({ map: SHARED_TEX.counter, roughness: 0.3 })),
         'MF', cubId, { castShadow: false }
       );
-      counterMesh.position.set(0.13, 0.96, 0.402);
+      counterMesh.position.set(0.13, 0.96, 0.403);
 
-      // Manual Spring-Charging Lever
-      const chargeHandle = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.14, 0.022), MAT.galvSteel), 'MF', cubId);
+      // Sculpted Manual Spring-Charging Lever with Ratchet Pivot Boss & Ergonomic T-Grip
+      const chargePivotBoss = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.014, 16), MAT.steelTrim), 'MF', cubId);
+      chargePivotBoss.rotation.x = Math.PI / 2;
+      chargePivotBoss.position.set(0.16, 0.90, 0.403);
+      const chargeHandle = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.135, 0.018), MAT.galvSteel), 'MF', cubId);
       chargeHandle.position.set(0.16, 0.84, 0.408);
+      const chargeGrip = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.048, 0.022), MAT.darkConsole), 'MF', cubId);
+      chargeGrip.position.set(0.16, 0.785, 0.412);
+      subGroups.MF.add(chargePivotBoss, chargeGrip);
 
-      // Racking Port Collar + Padlock + Castell Key
+      // Racking Port Collar + Interlock Shutter Flap + LOTO Hasp + Padlock + Castell Key
+      const rackFlange = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.008, 18), MAT.galvSteel), 'MF', cubId);
+      rackFlange.rotation.x = Math.PI / 2;
+      rackFlange.position.set(0, 0.68, 0.401);
       const rackPort = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.020, 16), MAT.steelTrim), 'MF', cubId);
       rackPort.rotation.x = Math.PI / 2;
       rackPort.position.set(0, 0.68, 0.404);
       const rackHex = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.024, 6), MAT.brass), 'MF', cubId);
       rackHex.rotation.x = Math.PI / 2;
       rackHex.position.set(0, 0.68, 0.406);
-      subGroups.MF.add(btnClose3D, btnTrip3D, flagOpenClose, flagSpring, counterMesh, chargeHandle, rackPort, rackHex);
+      const rackShutterFlap = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.044, 0.016, 0.006), MAT.brass), 'MF', cubId);
+      rackShutterFlap.position.set(0, 0.68, 0.415);
+      const lotoHaspBracket = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.026, 0.016), MAT.steelTrim), 'MF', cubId);
+      lotoHaspBracket.position.set(0.042, 0.68, 0.406);
+      subGroups.MF.add(btnClose3D, btnTrip3D, flagOpenClose, flagSpring, flagTruckPos, counterMesh, chargeHandle, rackFlange, rackPort, rackHex, rackShutterFlap, lotoHaspBracket);
+
+      // Rear Escutcheon Mechanical Interlock Bars & Actuator Plungers (visible in exploded view)
+      const rearInterlockBarV = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.26, 0.008), MAT.brass), 'MF', cubId);
+      rearInterlockBarV.position.set(-0.14, 0.81, 0.358);
+      const rearInterlockBarH = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.018, 0.008), MAT.galvSteel), 'MF', cubId);
+      rearInterlockBarH.position.set(-0.05, 0.68, 0.358);
+      [-0.12, -0.02].forEach((px) => {
+        const rearPlunger = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.018, 12), MAT.brass), 'MF', cubId);
+        rearPlunger.rotation.x = Math.PI / 2;
+        rearPlunger.position.set(px, 0.96, 0.356);
+        subGroups.MF.add(rearPlunger);
+      });
+      subGroups.MF.add(rearInterlockBarV, rearInterlockBarH);
 
       const rackingPadlock3D = buildPadlock3D('MF', cubId);
       rackingPadlock3D.position.set(0.048, 0.672, 0.416);
@@ -4712,31 +6557,57 @@
       subGroups.MF.add(vcbCastellKey3D);
 
       /* 11 · AX: 58-PIN UMBILICAL AUXILIARY CONTROL PLUG, BAILS & CONDUIT */
-      const auxSocket = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.052, 0.068), MAT.galvSteel), 'AX', cubId);
-      auxSocket.position.set(0.22, 1.43, 0.24);
-      const auxPlug = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.088, 0.058, 0.062), MAT.iedCase), 'AX', cubId);
-      auxPlug.position.set(0.22, 1.38, 0.24);
-      [-0.048, 0.048].forEach((bx) => {
-        const bail = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.068, 0.048), MAT.brass), 'AX', cubId);
+      const auxFlange = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.112, 0.012, 0.082), MAT.steelTrim), 'AX', cubId);
+      auxFlange.position.set(0.22, 1.454, 0.24);
+      const auxSocket = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.096, 0.048, 0.068), MAT.galvSteel), 'AX', cubId);
+      auxSocket.position.set(0.22, 1.430, 0.24);
+      const auxPinInsert = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.014, 0.050), MAT.brass), 'AX', cubId);
+      auxPinInsert.position.set(0.22, 1.404, 0.24);
+      const auxPlug = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.090, 0.054, 0.064), MAT.iedCase), 'AX', cubId);
+      auxPlug.position.set(0.22, 1.376, 0.24);
+      const auxGland = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.022, 0.024, 6), MAT.brass), 'AX', cubId);
+      auxGland.position.set(0.22, 1.342, 0.24);
+      [-0.050, 0.050].forEach((bx) => {
+        const bail = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.072, 0.050), MAT.brass), 'AX', cubId);
         bail.position.set(0.22 + bx, 1.405, 0.24);
-        subGroups.AX.add(bail);
+        const pivotPin = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.012, 8), MAT.silverContact), 'AX', cubId);
+        pivotPin.rotation.z = Math.PI / 2;
+        pivotPin.position.set(0.22 + bx, 1.432, 0.24);
+        subGroups.AX.add(bail, pivotPin);
       });
+      const bailRoller = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0055, 0.0055, 0.106, 10), MAT.shutterRed), 'AX', cubId);
+      bailRoller.rotation.z = Math.PI / 2;
+      bailRoller.position.set(0.22, 1.372, 0.268);
       const auxCurve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(0.22, 1.35, 0.24),
+        new THREE.Vector3(0.22, 1.34, 0.24),
         new THREE.Vector3(0.25, 1.31, 0.33),
         new THREE.Vector3(0.18, 1.28, 0.35)
       ]);
-      const auxConduit = regMesh(new THREE.Mesh(new THREE.TubeGeometry(auxCurve, 14, 0.014, 8, false), MAT.conduitFlex), 'AX', cubId);
-      subGroups.AX.add(auxSocket, auxPlug, auxConduit);
+      const auxConduit = regMesh(new THREE.Mesh(new THREE.TubeGeometry(auxCurve, 16, 0.014, 10, false), MAT.conduitFlex), 'AX', cubId);
+      subGroups.AX.add(auxFlange, auxSocket, auxPinInsert, auxPlug, auxGland, bailRoller, auxConduit);
 
       /* 12, 13, 14 · EP (EPOXY POLES), VI (VACUUM BOTTLES), TL (18-FINGER TULIPS) */
       const movingVacuumStems = [];
       const movingBellows = [];
+      const polePhaseMats = [MAT.phaseL1, MAT.phaseL2, MAT.phaseL3];
 
-      [-0.19, 0.0, 0.19].forEach((px) => {
-        // 12 · EP: Cast Cycloaliphatic Epoxy Pole Housing (210-deg cutaway) + 5 Sheds + Terminal Stems
+      // Structural Pole-Mounting Base Channel & 2 Inter-Phase Dielectric Barriers (L1-L2 & L2-L3)
+      const poleBaseBeam = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.024, 0.115), MAT.galvSteel), 'EP', cubId);
+      poleBaseBeam.position.set(0, 0.768, 0.10);
+      subGroups.EP.add(poleBaseBeam);
+
+      [-0.095, 0.095].forEach((bx) => {
+        const barrier = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.007, 0.46, 0.165), MAT.epoxyPole), 'EP', cubId, { isOuterXray: true });
+        barrier.position.set(bx, 1.02, 0.075);
+        const barrierEdge = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.011, 0.46, 0.010), MAT.aluminaCeramic), 'EP', cubId);
+        barrierEdge.position.set(bx, 1.02, 0.155);
+        subGroups.EP.add(barrier, barrierEdge);
+      });
+
+      [-0.19, 0.0, 0.19].forEach((px, pIdx) => {
+        // 12 · EP: Cast Cycloaliphatic Epoxy Pole Housing (210-deg cutaway) + 5 Sheds + Finned Terminal Blocks + Insulating Push-Rod
         const poleShell = regMesh(
-          new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.068, 0.46, 22, 1, false, Math.PI * 0.27, Math.PI * 1.46), MAT.epoxyPole),
+          new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.068, 0.46, 24, 1, false, Math.PI * 0.27, Math.PI * 1.46), MAT.epoxyPole),
           'EP', cubId, { isOuterXray: true }
         );
         poleShell.material.side = THREE.DoubleSide;
@@ -4745,51 +6616,98 @@
         poleShell.position.set(px, 1.02, 0.10);
         subGroups.EP.add(poleShell);
 
-        [0.79, 1.25].forEach((cy) => {
-          const cap = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.072, 0.030, 20), MAT.epoxyPole), 'EP', cubId);
-          cap.position.set(px, cy, 0.10);
-          subGroups.EP.add(cap);
+        // Exterior vertical dielectric reinforcement ribs along left/right of each pole barrel
+        [-0.067, 0.067].forEach((rx) => {
+          const vRib = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.44, 0.016), MAT.epoxyPole), 'EP', cubId, { isOuterXray: true });
+          vRib.position.set(px + rx, 1.02, 0.09);
+          subGroups.EP.add(vRib);
         });
 
+        [0.79, 1.25].forEach((cy) => {
+          const cap = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.073, 0.073, 0.028, 22), MAT.epoxyPole), 'EP', cubId);
+          cap.position.set(px, cy, 0.10);
+          subGroups.EP.add(cap);
+          for (let b = 0; b < 6; b++) {
+            const ang = (b / 6) * Math.PI * 2;
+            const bolt = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.034, 6), MAT.brass), 'EP', cubId, { castShadow: false });
+            bolt.position.set(px + Math.cos(ang) * 0.058, cy, 0.10 + Math.sin(ang) * 0.058);
+            subGroups.EP.add(bolt);
+          }
+        });
+
+        // Phase color collar badge at top of pole
+        const phaseCollar = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.012, 16), polePhaseMats[pIdx]), 'EP', cubId);
+        phaseCollar.position.set(px, 1.268, 0.10);
+        subGroups.EP.add(phaseCollar);
+
         [0.86, 0.94, 1.02, 1.10, 1.18].forEach((ry) => {
-          const shed = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.072, 0.006, 8, 22, Math.PI * 1.46), MAT.epoxyPole), 'EP', cubId);
+          const shed = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.073, 0.0065, 8, 22, Math.PI * 1.46), MAT.epoxyPole), 'EP', cubId);
           shed.rotation.x = Math.PI / 2;
           shed.rotation.z = Math.PI * 0.27;
           shed.position.set(px, ry, 0.10);
           subGroups.EP.add(shed);
         });
 
+        // Lower Insulating Operating Push-Rod + Contact-Wipe Compression Spring + Clevis Fork
+        const insPushRod = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.11, 12), MAT.aluminaCeramic), 'EP', cubId);
+        insPushRod.position.set(px, 0.815, 0.10);
+        const wipeSpring = buildHelicalSpring(0.019, 0.062, 6, 0.0036, MAT.silverContact, 'EP', cubId);
+        wipeSpring.position.set(px, 0.815, 0.10);
+        const clevisFork = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.028, 0.026), MAT.brass), 'EP', cubId);
+        clevisFork.position.set(px, 0.758, 0.10);
+        subGroups.EP.add(insPushRod, wipeSpring, clevisFork);
+
         [1.20, 0.82].forEach((ty) => {
-          const stemArm = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.14, 14), MAT.copper), 'EP', cubId);
+          // Finned Cast-Copper Terminal Saddle Block + Clamping Bolts + Primary Stem Arm
+          const saddleBlock = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.068, 0.044, 0.068), MAT.copper), 'EP', cubId);
+          saddleBlock.position.set(px, ty, 0.055);
+          [-0.014, 0.0, 0.014].forEach((fy) => {
+            const heatFin = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.004, 0.058), MAT.brass), 'EP', cubId, { castShadow: false });
+            heatFin.position.set(px, ty + fy, 0.055);
+            subGroups.EP.add(heatFin);
+          });
+          const stemArm = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.14, 16), MAT.copper), 'EP', cubId);
           stemArm.rotation.x = Math.PI / 2;
           stemArm.position.set(px, ty, 0.02);
-          subGroups.EP.add(stemArm);
+          const stemFlange = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.014, 16), MAT.brass), 'EP', cubId);
+          stemFlange.rotation.x = Math.PI / 2;
+          stemFlange.position.set(px, ty, -0.032);
+          subGroups.EP.add(saddleBlock, stemArm, stemFlange);
 
-          // 14 · TL: 18-Finger Silver-Plated Tulip Contact Cluster + Dual Garter Springs
+          // 14 · TL: 18-Finger Silver-Plated Tulip Contact Cluster + Support Cage + Triple Garter Springs
           const tulipCluster = new THREE.Group();
           tulipCluster.position.set(px, ty, -0.095);
-          const carrier = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.018, 16), MAT.copper), 'TL', cubId);
+          const carrier = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.027, 0.027, 0.020, 18), MAT.copper), 'TL', cubId);
           carrier.rotation.x = Math.PI / 2;
           carrier.position.z = 0.022;
-          tulipCluster.add(carrier);
+          const innerCage = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.021, 0.021, 0.042, 16), MAT.brass), 'TL', cubId);
+          innerCage.rotation.x = Math.PI / 2;
+          innerCage.position.z = 0.002;
+          tulipCluster.add(carrier, innerCage);
 
           for (let f = 0; f < 18; f++) {
             const ang = (f / 18) * Math.PI * 2;
+            const fx = Math.cos(ang) * 0.026;
+            const fy = Math.sin(ang) * 0.026;
             const finger = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.0058, 0.0082, 0.056), MAT.silverContact), 'TL', cubId);
-            finger.position.set(Math.cos(ang) * 0.026, Math.sin(ang) * 0.026, 0);
-            tulipCluster.add(finger);
+            finger.position.set(fx, fy, 0);
+            finger.rotation.z = ang + Math.PI / 2;
+            const nosePad = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.0064, 0.010, 0.012), MAT.silverContact), 'TL', cubId, { castShadow: false });
+            nosePad.position.set(Math.cos(ang) * 0.0245, Math.sin(ang) * 0.0245, -0.020);
+            nosePad.rotation.z = ang + Math.PI / 2;
+            tulipCluster.add(finger, nosePad);
           }
-          [-0.012, 0.010].forEach((gz) => {
-            const garter = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.030, 0.0035, 8, 20), MAT.galvSteel), 'TL', cubId);
+          [-0.014, 0.000, 0.013].forEach((gz) => {
+            const garter = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.0305, 0.0036, 8, 22), MAT.galvSteel), 'TL', cubId);
             garter.position.z = gz;
             tulipCluster.add(garter);
           });
           subGroups.TL.add(tulipCluster);
         });
 
-        // 13 · VI: Cutaway Al2O3 Ceramic Vacuum Bottle + Vapor Shield + Spiral CuCr Contacts + Bellows
+        // 13 · VI: Cutaway Al2O3 Ceramic Vacuum Bottle + Brazing Rings + Vapor Shield + Spiral CuCr Contacts + Bellows + Shunt
         const ceramicEnv = regMesh(
-          new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.046, 0.25, 20, 1, false, Math.PI * 0.24, Math.PI * 1.52), MAT.aluminaCeramic),
+          new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.046, 0.25, 22, 1, false, Math.PI * 0.24, Math.PI * 1.52), MAT.aluminaCeramic),
           'VI', cubId
         );
         ceramicEnv.material.side = THREE.DoubleSide;
@@ -4797,43 +6715,93 @@
         ceramicEnv.position.set(px, 1.02, 0.10);
         subGroups.VI.add(ceramicEnv);
 
-        // Internal Cutaway Vapor Condensation Shield
+        // Top, middle, and bottom metallized brazing seal rings on ceramic bottle
+        [0.910, 1.020, 1.130].forEach((by) => {
+          const brazeRing = regMesh(
+            new THREE.Mesh(new THREE.CylinderGeometry(0.0472, 0.0472, 0.010, 22, 1, false, Math.PI * 0.24, Math.PI * 1.52), MAT.brass),
+            'VI', cubId
+          );
+          brazeRing.material.side = THREE.DoubleSide;
+          brazeRing.userData.ghostMaterial.side = THREE.DoubleSide;
+          brazeRing.position.set(px, by, 0.10);
+          subGroups.VI.add(brazeRing);
+        });
+
+        // Internal Cutaway Vapor Condensation Shield with Field-Grading Lips
         const arcShield = regMesh(
-          new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.11, 18, 1, true, Math.PI * 0.30, Math.PI * 1.40), MAT.brass),
+          new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.115, 18, 1, true, Math.PI * 0.30, Math.PI * 1.40), MAT.brass),
           'VI', cubId
         );
         arcShield.material.side = THREE.DoubleSide;
         arcShield.userData.ghostMaterial.side = THREE.DoubleSide;
         arcShield.position.set(px, 1.03, 0.10);
         subGroups.VI.add(arcShield);
+        [0.974, 1.086].forEach((ly) => {
+          const shieldLip = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.038, 0.0028, 8, 18, Math.PI * 1.40), MAT.silverContact), 'VI', cubId);
+          shieldLip.rotation.x = Math.PI / 2;
+          shieldLip.rotation.z = Math.PI * 0.30;
+          shieldLip.position.set(px, ly, 0.10);
+          subGroups.VI.add(shieldLip);
+        });
 
         [0.90, 1.14].forEach((ey) => {
-          const kovarCap = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.016, 20), MAT.silverContact), 'VI', cubId);
+          const kovarCap = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.016, 22), MAT.silverContact), 'VI', cubId);
           kovarCap.position.set(px, ey, 0.10);
           subGroups.VI.add(kovarCap);
         });
 
-        const fixedStem = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.08, 14), MAT.copper), 'VI', cubId);
-        fixedStem.position.set(px, 1.08, 0.10);
-        const fixedDisc = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.029, 0.029, 0.015, 18), MAT.copper), 'VI', cubId);
-        fixedDisc.position.set(px, 1.036, 0.10);
-        subGroups.VI.add(fixedStem, fixedDisc);
+        // Fixed Upper Electrode + Spiral RMF CuCr Contact Petals + Wear Ring
+        const fixedStem = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.085, 16), MAT.copper), 'VI', cubId);
+        fixedStem.position.set(px, 1.082, 0.10);
+        const fixedDisc = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.030, 0.016, 20), MAT.copper), 'VI', cubId);
+        fixedDisc.position.set(px, 1.038, 0.10);
+        const fixedWearRing = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.005, 18), MAT.silverContact), 'VI', cubId);
+        fixedWearRing.position.set(px, 1.029, 0.10);
+        subGroups.VI.add(fixedStem, fixedDisc, fixedWearRing);
+        for (let sp = 0; sp < 6; sp++) {
+          const ang = (sp / 6) * Math.PI * 2;
+          const petal = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.012, 0.005), MAT.brass), 'VI', cubId, { castShadow: false });
+          petal.position.set(px + Math.cos(ang) * 0.024, 1.038, 0.10 + Math.sin(ang) * 0.024);
+          petal.rotation.y = -ang + 0.45;
+          subGroups.VI.add(petal);
+        }
 
+        // Moving Lower Electrode + Spiral RMF CuCr Contact Petals + Shunt Collar & Flexible Copper Shunt
         const movingAssembly = new THREE.Group();
         movingAssembly.position.set(px, 1.021, 0.10);
-        const movDisc = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.029, 0.029, 0.015, 18), MAT.copper), 'VI', cubId);
-        const movStem = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.10, 14), MAT.copper), 'VI', cubId);
-        movStem.position.y = -0.056;
-        movingAssembly.add(movDisc, movStem);
+        const movDisc = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.030, 0.016, 20), MAT.copper), 'VI', cubId);
+        const movWearRing = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.005, 18), MAT.silverContact), 'VI', cubId);
+        movWearRing.position.y = 0.009;
+        const movStem = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.125, 16), MAT.copper), 'VI', cubId);
+        movStem.position.y = -0.068;
+        const shuntCollar = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.018, 0.036), MAT.brass), 'VI', cubId);
+        shuntCollar.position.y = -0.128;
+        const flexShuntCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, -0.128, -0.014),
+          new THREE.Vector3(0.022, -0.148, -0.026),
+          new THREE.Vector3(0, -0.172, -0.036)
+        ]);
+        const flexShunt = regMesh(new THREE.Mesh(new THREE.TubeGeometry(flexShuntCurve, 10, 0.0055, 6, false), MAT.copper), 'VI', cubId);
+        movingAssembly.add(movDisc, movWearRing, movStem, shuntCollar, flexShunt);
+        for (let sp = 0; sp < 6; sp++) {
+          const ang = (sp / 6) * Math.PI * 2;
+          const petal = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.012, 0.005), MAT.brass), 'VI', cubId, { castShadow: false });
+          petal.position.set(Math.cos(ang) * 0.024, 0, Math.sin(ang) * 0.024);
+          petal.rotation.y = -ang - 0.45;
+          movingAssembly.add(petal);
+        }
         subGroups.VI.add(movingAssembly);
         movingVacuumStems.push(movingAssembly);
 
         const bellowsGroup = new THREE.Group();
-        bellowsGroup.position.set(px, 0.925, 0.10);
-        for (let b = 0; b < 6; b++) {
-          const conv = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.019, 0.0034, 8, 16), MAT.silverContact), 'VI', cubId);
+        bellowsGroup.position.set(px, 0.920, 0.10);
+        const guideSleeve = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.055, 14), MAT.galvSteel), 'VI', cubId);
+        guideSleeve.position.y = 0.022;
+        bellowsGroup.add(guideSleeve);
+        for (let b = 0; b < 7; b++) {
+          const conv = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.020, 0.0034, 8, 18), MAT.silverContact), 'VI', cubId);
           conv.rotation.x = Math.PI / 2;
-          conv.position.y = b * 0.008;
+          conv.position.y = b * 0.0075;
           bellowsGroup.add(conv);
         }
         subGroups.VI.add(bellowsGroup);
@@ -5094,10 +7062,14 @@
         bayX,
         root,
         subGroups,
+        arFlaps,
         doorHingeGroup,
         wheelGroups,
         leadScrew,
         flagOpenClose,
+        flagSpring,
+        flagTruckPos,
+        rackShutterFlap,
         rackingPadlock3D,
         vcbCastellKey3D,
         movingVacuumStems,
@@ -5112,7 +7084,11 @@
         cmeMeshes,
         meggerLeadsGroup,
         cviLedMeshes,
-        mimicLed,
+        needleKV,
+        needleA,
+        lampBank,
+        mimicPanel,
+        hmiPanel,
         tagDangerMesh,
         tagEarthMesh,
         tagSftMesh,
@@ -5121,7 +7097,9 @@
           racking: 0,
           doorAngle: 0,
           contactStroke: 1,
-          earthAngle: 0
+          earthAngle: 0,
+          needleKV: 0,
+          needleA: 0
         }
       };
     }
@@ -5151,7 +7129,7 @@
         subGroups.TC.add(subGroups[k]);
       });
 
-      // SK: Base Skid & Mounts
+      // SK: Base Skid, Mounts & Navy Kick-Plate
       [-0.34, 0.34].forEach((sx) => {
         const rail = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.042, 1.04), MAT.skidSteel), 'SK', cubId);
         rail.position.set(sx, 0.035, 0);
@@ -5164,6 +7142,12 @@
         bolt.position.set(cx, 0.062, cz);
         subGroups.SK.add(pad, bolt);
       });
+      const lvKickPlate = regMesh(
+        new THREE.Mesh(new THREE.BoxGeometry(W - 0.04, 0.068, 0.012), new THREE.MeshStandardMaterial({ color: 0x2f4a6b, roughness: 0.55, metalness: 0.20 })),
+        'SK', cubId
+      );
+      lvKickPlate.position.set(0, 0.040, 0.502);
+      subGroups.SK.add(lvKickPlate);
 
       // CF: Segregated 440 V Switchboard Frame & Side Walls
       [-W / 2 + 0.008, W / 2 - 0.008].forEach((wx) => {
@@ -5177,17 +7161,24 @@
         subGroups.CF.add(deck);
       });
 
-      // AR: Top Canopy & Eyebolts
+      // AR: Top Canopy, Drip-Shield Lip, Header Banner & Eyebolts
       const roof = regMesh(new THREE.Mesh(new THREE.BoxGeometry(W, 0.020, 1.02), MAT.steelLight), 'AR', cubId, { isOuterXray: true });
       roof.position.set(0, 2.05, 0);
-      subGroups.AR.add(roof);
+      const lvCanopyLip = regMesh(new THREE.Mesh(new THREE.BoxGeometry(W - 0.008, 0.028, 0.040), MAT.steelTrim), 'AR', cubId);
+      lvCanopyLip.position.set(0, 2.046, 0.502);
+      const lvHeader = regMesh(
+        new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.024), new THREE.MeshStandardMaterial({ map: SHARED_TEX.headerLV, roughness: 0.35 })),
+        'AR', cubId, { castShadow: false }
+      );
+      lvHeader.position.set(0, 2.046, 0.523);
+      subGroups.AR.add(roof, lvCanopyLip, lvHeader);
       [-0.30, 0.30].forEach((ex) => {
         const eye = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.020, 0.005, 10, 18), MAT.brass), 'AR', cubId);
         eye.position.set(ex, 2.085, 0.34);
         subGroups.AR.add(eye);
       });
 
-      // FD: Extruded Front ACB Door with Cutout
+      // FD: Extruded Front ACB Door with Cutout, Louvered Vent & Safety Rating Plate
       const dW = W - 0.03;
       const dShape = new THREE.Shape();
       dShape.moveTo(-dW / 2, -0.46);
@@ -5207,19 +7198,42 @@
       lvFrontDoor.position.set(0, 0.96, 0.49);
       const lowPanel = regMesh(new THREE.Mesh(new THREE.BoxGeometry(dW, 0.40, 0.016), MAT.steelPanel), 'FD', cubId, { isOuterXray: true });
       lowPanel.position.set(0, 0.27, 0.49);
-      subGroups.FD.add(lvFrontDoor, lowPanel);
+      const lvVentOpening = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.12), new THREE.MeshStandardMaterial({ color: 0x1d242b, roughness: 0.8 })), 'FD', cubId, { castShadow: false });
+      lvVentOpening.position.set(0, 0.22, 0.499);
+      subGroups.FD.add(lvFrontDoor, lowPanel, lvVentOpening);
+      for (let ly = 0.17; ly <= 0.27; ly += 0.032) {
+        const louver = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.011, 0.009), MAT.steelTrim), 'FD', cubId);
+        louver.position.set(0, ly, 0.501);
+        louver.rotation.x = 0.35;
+        subGroups.FD.add(louver);
+      }
 
-      // LD: Upper 440 V Metering Door & Pilot Lamps
+      // LD: Upper 440 V Metering Door, Live Ammeter & Voltmeter, Single-Line Mimic, Lamp Bank & Storm Handrail
       const upperDoor = regMesh(new THREE.Mesh(new THREE.BoxGeometry(dW, 0.58, 0.018), MAT.steelLight), 'LD', cubId);
       upperDoor.position.set(0, 1.74, 0.495);
       const strip = regMesh(new THREE.Mesh(new THREE.BoxGeometry(dW, 0.022, 0.008), new THREE.MeshStandardMaterial({ color: 0x4a8258, roughness: 0.35 })), 'LD', cubId);
       strip.position.set(0, 2.015, 0.506);
       const nameTex = makeBadgeTexture('C5 · ACB-LV', '440 V SECONDARY', '#f7f6f3', '#1f2529', '#4a8258');
-      const nameMesh = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.10), new THREE.MeshStandardMaterial({ map: nameTex, roughness: 0.35 })), 'LD', cubId, { castShadow: false });
-      nameMesh.position.set(-0.16, 1.92, 0.506);
-      const vMeter = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.105, 0.105), new THREE.MeshStandardMaterial({ map: SHARED_TEX.lvVolt, roughness: 0.25 })), 'LD', cubId, { castShadow: false });
-      vMeter.position.set(0.18, 1.91, 0.507);
-      subGroups.LD.add(upperDoor, strip, nameMesh, vMeter);
+      const nameMesh = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.095), new THREE.MeshStandardMaterial({ map: nameTex, roughness: 0.35 })), 'LD', cubId, { castShadow: false });
+      nameMesh.position.set(-0.17, 1.93, 0.506);
+      subGroups.LD.add(upperDoor, strip, nameMesh);
+
+      const needleA = addLiveMeter(subGroups.LD, cubId, 0.075, 1.92, SHARED_TEX.lvAmp, 0.096, 0.516);
+      const needleV = addLiveMeter(subGroups.LD, cubId, 0.220, 1.92, SHARED_TEX.lvVolt, 0.096, 0.516);
+
+      const lvMimicPanel = makeLivePanel(300, 200, drawMimic, { ...MIMIC_DEFAULT, ...MIMIC_KINDS[cubId] });
+      const lvMimicFrame = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.292, 0.196, 0.006), MAT.darkConsole), 'LD', cubId);
+      lvMimicFrame.position.set(-0.17, 1.71, 0.506);
+      const lvMimicPlane = regMesh(
+        new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.184), new THREE.MeshStandardMaterial({ map: lvMimicPanel.tex, roughness: 0.45 })),
+        'LD', cubId, { castShadow: false }
+      );
+      lvMimicPlane.position.set(-0.17, 1.71, 0.510);
+      subGroups.LD.add(lvMimicFrame, lvMimicPlane);
+
+      const lvLampBank = buildLampBank(subGroups.LD, cubId, 0.15, 1.72, 0.506, 0.066, ['red', 'green', 'amber', 'white']);
+      addLegend(subGroups.LD, cubId, SHARED_TEX.lvLampLegend, 4, 96, 0.15, 1.685, 0.506, 0.066);
+      addStormHandrail(subGroups.LD, 'LD', cubId, dW, 1.442, 0.504);
 
       // PR: LV Reverse-Power Relay & Terminal Rail
       const lvRelay = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 0.16), MAT.iedCase), 'PR', cubId);
@@ -5227,28 +7241,47 @@
       subGroups.PR.add(lvRelay);
 
       // TC & EP: 440 V Air Circuit Breaker (ABB Emax 2) Chassis + 3 Multi-Plate De-Ion Arc Chutes
-      const acbBody = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.46, 0.32), MAT.carriageSteel), 'TC', cubId);
-      acbBody.position.set(0, 0.88, 0.26);
-      subGroups.TC.add(acbBody);
+      const acbBody = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.44, 0.30), MAT.carriageSteel), 'TC', cubId);
+      acbBody.position.set(0, 0.86, 0.25);
+      const acbCradle = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.49, 0.036, 0.34), MAT.skidSteel), 'TC', cubId);
+      acbCradle.position.set(0, 0.63, 0.25);
+      subGroups.TC.add(acbBody, acbCradle);
+      [-0.238, 0.238].forEach((cx) => {
+        const railFlange = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.40, 0.32), MAT.galvSteel), 'TC', cubId);
+        railFlange.position.set(cx, 0.86, 0.25);
+        subGroups.TC.add(railFlange);
+      });
       [-0.14, 0.0, 0.14].forEach((ax) => {
         const chute = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.22), MAT.epoxyPole), 'EP', cubId);
         chute.position.set(ax, 1.18, 0.24);
+        const exhaustGrid = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.092, 0.012, 0.20), MAT.bronzeMesh), 'EP', cubId);
+        exhaustGrid.position.set(ax, 1.254, 0.24);
         for (let p = -3; p <= 3; p++) {
           const splitter = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.088, 0.09, 0.006), MAT.galvSteel), 'VI', cubId);
           splitter.position.set(ax, 1.21, 0.24 + p * 0.024);
           subGroups.VI.add(splitter);
         }
-        subGroups.EP.add(chute);
+        subGroups.EP.add(chute, exhaustGrid);
       });
 
-      // MF: 440 V ACB Escutcheon, Flag, Charging Handle, Padlock & Castell Key K-LV
+      // MF: 440 V ACB Escutcheon, Ekip Trip Unit, Pushbuttons, Flag, Charging Handle, Padlock & Castell Key K-LV
       const acbEsc = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.40, 0.42, 0.036), MAT.darkConsole), 'MF', cubId);
       acbEsc.position.set(0, 0.98, 0.44);
+      const acbBezel = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.40, 0.008), MAT.steelTrim), 'MF', cubId);
+      acbBezel.position.set(0, 0.98, 0.456);
+      const acbTripScreen = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.085, 0.010), MAT.iedCase), 'MF', cubId);
+      acbTripScreen.position.set(-0.10, 0.98, 0.460);
+      const acbBtnClose = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.014, 14), MAT.shutterRed), 'MF', cubId);
+      acbBtnClose.rotation.x = Math.PI / 2;
+      acbBtnClose.position.set(0.02, 1.03, 0.462);
+      const acbBtnOpen = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.014, 14), MAT.earthGreen), 'MF', cubId);
+      acbBtnOpen.rotation.x = Math.PI / 2;
+      acbBtnOpen.position.set(0.02, 0.96, 0.462);
       const acbFlag = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.048, 0.012), MAT.shutterRed), 'MF', cubId);
       acbFlag.position.set(-0.06, 1.10, 0.462);
       const acbChargeLever = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.15, 0.022), MAT.shutterYellow), 'MF', cubId);
       acbChargeLever.position.set(0.12, 1.02, 0.465);
-      subGroups.MF.add(acbEsc, acbFlag, acbChargeLever);
+      subGroups.MF.add(acbEsc, acbBezel, acbTripScreen, acbBtnClose, acbBtnOpen, acbFlag, acbChargeLever);
 
       const acbPadlock = buildPadlock3D('MF', cubId);
       acbPadlock.position.set(-0.10, 0.86, 0.468);
@@ -5284,7 +7317,11 @@
         acbFlag,
         acbPadlock,
         acbKey,
-        anim: { racking: 0 }
+        needleV,
+        needleA,
+        lampBank: lvLampBank,
+        mimicPanel: lvMimicPanel,
+        anim: { racking: 0, needleV: 0, needleA: 0 }
       };
     }
     buildLVBay();
@@ -5313,7 +7350,11 @@
     wand3D.visible = false;
     scene.add(wand3D);
 
-    /* 10. POPULATE 19-PART ISOLATION STRIP (#partChips & #partInfo) */
+    /* 10. POPULATE 19-PART ISOLATION DROPDOWN (#partsDropdownMenu, #partChips & #partInfo) */
+    if (typeof HTMLElement !== 'undefined' && !('popover' in HTMLElement.prototype)) {
+      import('https://unpkg.com/@oddbird/popover-polyfill@latest/dist/popover.min.js').catch(() => {});
+    }
+
     const cadState = {
       explode: 0.0,
       targetExplode: 0.0,
@@ -5325,13 +7366,39 @@
 
     const partChipsEl = document.getElementById('partChips');
     const partInfoEl = document.getElementById('partInfo');
+    const btnPartsDropdown = document.getElementById('btnPartsDropdown');
+    const partsDropdownMenu = document.getElementById('partsDropdownMenu');
+    const partsDropdownBadge = document.getElementById('partsDropdownBadge');
+    const partsDropdownDot = document.getElementById('partsDropdownDot');
+    const btnPartResetAll = document.getElementById('btnPartResetAll');
+
+    function positionPartsDropdownFallback() {
+      if (!btnPartsDropdown || !partsDropdownMenu) return;
+      if (typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('position-area', 'block-end')) return;
+      const rect = btnPartsDropdown.getBoundingClientRect();
+      const menuW = Math.min(640, window.innerWidth * 0.92);
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuW - 8));
+      const top = Math.min(rect.bottom + 5, window.innerHeight - 120);
+      partsDropdownMenu.style.left = `${left}px`;
+      partsDropdownMenu.style.top = `${top}px`;
+    }
+
+    if (partsDropdownMenu) {
+      partsDropdownMenu.addEventListener('toggle', () => {
+        positionPartsDropdownFallback();
+      });
+    }
+
+    if (btnPartResetAll) {
+      btnPartResetAll.addEventListener('click', () => setIsolatedPart('all'));
+    }
 
     function buildPartChipsUI() {
       if (!partChipsEl) return;
-      const allBtn = `<button type="button" class="part-chip active" data-part="all" style="--cat: var(--accent);">All (${PART_KEYS.length})</button>`;
+      const allBtn = `<button type="button" class="part-chip active" data-part="all" style="--cat: var(--accent);"><span class="cat-dot"></span>Show All (${PART_KEYS.length} Sub-Assemblies)<span class="part-chip-spec">Full Switchgear Assembly</span></button>`;
       const chips = PART_KEYS.map((k) => {
         const s = SUBSYSTEMS[k];
-        return `<button type="button" class="part-chip" data-part="${k}" style="--cat: ${s.cat};" title="${s.name} — ${s.spec}"><span class="cat-dot"></span>${s.code} · ${s.name}</button>`;
+        return `<button type="button" class="part-chip" data-part="${k}" style="--cat: ${s.cat};" title="${s.name} — ${s.spec}"><span class="cat-dot"></span><span>${s.code} · ${s.name}</span><span class="part-chip-spec">${s.spec}</span></button>`;
       }).join('');
       partChipsEl.innerHTML = allBtn + chips;
 
@@ -5339,6 +7406,9 @@
         btn.addEventListener('click', () => {
           const pk = btn.dataset.part;
           setIsolatedPart(pk === cadState.isolatedPart && pk !== 'all' ? 'all' : pk);
+          if (partsDropdownMenu && typeof partsDropdownMenu.hidePopover === 'function') {
+            try { partsDropdownMenu.hidePopover(); } catch (_) {}
+          }
         });
       });
     }
@@ -5348,11 +7418,17 @@
       if (!partInfoEl) return;
       if (cadState.isolatedPart === 'all' || !SUBSYSTEMS[cadState.isolatedPart]) {
         partInfoEl.style.setProperty('--cat', 'var(--accent)');
-        partInfoEl.innerHTML = `<strong>19 Sub-Assemblies Active</strong><span class="num">IEC 62271-200 Form 4b</span><span>Click any chip, callout, or 3D component to isolate (0.14 ghost context).</span>`;
+        partInfoEl.innerHTML = `<strong>19 Sub-Assemblies Active</strong><span class="num">IEC 62271-200 Form 4b</span><span>Select from dropdown or click any 3D part to isolate.</span>`;
+        if (partsDropdownBadge) partsDropdownBadge.textContent = `All (${PART_KEYS.length})`;
+        if (partsDropdownDot) partsDropdownDot.style.background = 'var(--accent)';
+        if (btnPartResetAll) btnPartResetAll.hidden = true;
       } else {
         const s = SUBSYSTEMS[cadState.isolatedPart];
         partInfoEl.style.setProperty('--cat', s.cat);
         partInfoEl.innerHTML = `<strong>[${s.code}] ${s.name}</strong><span class="num">${s.spec}</span><span>${s.desc}</span>`;
+        if (partsDropdownBadge) partsDropdownBadge.textContent = `${s.code} · ${s.name}`;
+        if (partsDropdownDot) partsDropdownDot.style.background = s.cat;
+        if (btnPartResetAll) btnPartResetAll.hidden = false;
       }
     }
 
@@ -5403,6 +7479,10 @@
         const viOff = SUBSYSTEMS.VI.explodeVec.clone().multiplyScalar(exp);
         tweenTarget.set(bx + viOff.x, 1.04 + viOff.y, 0.12 + viOff.z);
         tweenPos.set(bx + viOff.x + 0.52, 1.26 + viOff.y, 1.22 + viOff.z);
+      } else if (presetName === 'mechanism') {
+        const sdOff = SUBSYSTEMS.SD.explodeVec.clone().multiplyScalar(exp);
+        tweenTarget.set(bx + sdOff.x, 0.72 + sdOff.y * 0.5, 0.35 + sdOff.z);
+        tweenPos.set(bx + sdOff.x + 0.48, 0.96 + sdOff.y * 0.5, 1.48 + sdOff.z);
       } else if (presetName === 'rear') {
         tweenTarget.set(bx * 0.6, 1.18, -0.35 - exp * 0.9);
         tweenPos.set(bx * 0.6 - 1.75, 1.72 + exp * 0.6, -2.85 - exp * 2.4);
@@ -5668,6 +7748,8 @@
     });
 
     /* 14. REAL-TIME KINEMATIC, EXPLOSION & ELECTRICAL SYNC LOOP (60 FPS) */
+    const RACK_STROKE = 0.10;      // metres: SERVICE -> DISCONNECTED travel, fits behind the closed door (fascia clears door by >= 1.5 cm)
+    const SHUTTER_CLEAR_Z = 0.075; // truck travel at which tulip rears clear the shutter plane (z = -0.048); shutters stay open until then
     const TRUCK_CHILDREN = ['SD', 'MF', 'AX', 'EP', 'VI', 'TL'];
     const STATIONARY_GROUPS = ['SK', 'CF', 'AR', 'FD', 'LD', 'PR', 'RL', 'SS', 'SP', 'ES', 'BB', 'CT'];
     const relTruckVecs = {};
@@ -5715,8 +7797,9 @@
 
           const exp = (activeId === id) ? globalExp : 0.0;
 
-          // 1. Live Racking Z (SERVICE=0.00m, TEST=+0.21m, DISCONNECTED=+0.42m)
-          const targetRackZ = ((20 - cub.rackingTurns) / 20) * 0.42;
+          // 1. Live Racking Z - 100 mm cassette stroke, performed behind the CLOSED door
+          //    (SERVICE=0.00m, TEST=+0.07m, DISCONNECTED=+0.14m)
+          const targetRackZ = ((20 - cub.rackingTurns) / 20) * RACK_STROKE;
           bm.anim.racking += (targetRackZ - bm.anim.racking) * 0.15;
 
           // 2. Hinged Extruded VCB Door Rotation
@@ -5745,10 +7828,11 @@
           // Concentric Wheel & Lead-Screw Rotation (zero coin-tumble!)
           const wRot = bm.anim.racking / 0.030;
           bm.wheelGroups.forEach((wg) => { wg.rotation.x = wRot; });
-          bm.leadScrew.rotation.z = bm.anim.racking * 42;
+          // Lead-screw turns once per crank turn (20 turns SERVICE -> DISCONNECTED)
+          bm.leadScrew.rotation.z = (bm.anim.racking / RACK_STROKE) * 20 * Math.PI * 2;
 
-          // 5. Automatic Red & Yellow IP2X Safety Shutters
-          const openRatio = THREE.MathUtils.clamp(1.0 - (bm.anim.racking / 0.14), 0.0, 1.0);
+          // 5. Automatic Red & Yellow IP2X Safety Shutters (fully closed by DISCONNECTED)
+          const openRatio = THREE.MathUtils.clamp((RACK_STROKE - bm.anim.racking) / (RACK_STROKE - SHUTTER_CLEAR_Z), 0.0, 1.0);
           bm.shutterUpper.position.y = 1.20 + openRatio * 0.125;
           bm.shutterLower.position.y = 0.82 - openRatio * 0.125;
           bm.redShutterPadlock3D.visible = Boolean(cub.topShutterPadlocked);
@@ -5758,10 +7842,49 @@
           bm.anim.earthAngle += (targetEarthRot - bm.anim.earthAngle) * 0.20;
           bm.earthBladePivot.rotation.x = bm.anim.earthAngle;
 
-          // 7. Status Flags, CVI LEDs, Padlocks, Castell Keys, Tags, CME & Megger Leads
+          // 7. Status Flags, Live Meters, Pilot Lamps, Mimic, Relay HMI, CVI LEDs, Padlocks, Castell Keys & Tags
           const vcbHex = cub.vcbClosed ? 0xad4337 : 0x2f7450;
           setMeshColor(bm.flagOpenClose, vcbHex);
-          setMeshColor(bm.mimicLed, vcbHex, vcbHex, 0.30);
+          setMeshColor(bm.flagSpring, cub.springCharged !== false ? 0xdba328 : 0x64748b);
+
+          const rPos = rackPos(cub.rackingTurns);
+          const posHex = rPos === 20 ? 0x1f6f78 : (rPos === 10 ? 0xdba328 : 0x2f7450);
+          setMeshColor(bm.flagTruckPos, posHex);
+
+          // Mechanical racking port shutter blocks hex socket when breaker is CLOSED
+          if (bm.rackShutterFlap) {
+            bm.rackShutterFlap.position.x = cub.vcbClosed ? 0.0 : -0.028;
+          }
+
+          const m = bayMetering(id, sim, topo);
+          bm.anim.needleKV += (m.kV - bm.anim.needleKV) * 0.18;
+          bm.anim.needleA += (m.amps - bm.anim.needleA) * 0.18;
+          bm.needleKV.rotation.z = needleRot(bm.anim.needleKV / 7.2);
+          bm.needleA.rotation.z = needleRot(bm.anim.needleA / 300);
+
+          setLamp(bm.lampBank[0], cub.vcbClosed && m.bus);
+          setLamp(bm.lampBank[1], !cub.vcbClosed);
+          setLamp(bm.lampBank[2], m.earthed);
+          setLamp(bm.lampBank[3], rPos === 20 && m.bus);
+
+          bm.mimicPanel.update({
+            ...MIMIC_KINDS[id],
+            bus: m.bus,
+            load: m.load,
+            closed: cub.vcbClosed,
+            rack: rPos,
+            earthed: m.earthed,
+            backfed: m.backfed
+          });
+          bm.hmiPanel.update({
+            tag: id === 'TR1-HV' ? 'TR1' : id,
+            amps: m.amps,
+            kV: m.kV,
+            closed: cub.vcbClosed,
+            rack: rPos,
+            earthed: m.earthed,
+            backfed: m.backfed
+          });
 
           const bayLive = (id === 'DG1' && topo.portLive) ||
             (id === 'BT1' && topo.stbdLive) ||
@@ -5795,7 +7918,7 @@
           }
         });
 
-        // Sync 5th Bay: C5 · ACB-TR1-LV (including 100% explode support!)
+        // Sync 5th Bay: C5 · ACB-TR1-LV (including 100% explode support & live 440 V metering!)
         const lvCub = sim.cubicles['ACB-TR1-LV'];
         const lvBm = bayModels['ACB-TR1-LV'];
         if (lvCub && lvBm) {
@@ -5811,6 +7934,29 @@
           setMeshColor(lvBm.acbFlag, lvCub.vcbClosed ? 0xad4337 : 0x2f7450);
           lvBm.acbPadlock.visible = Boolean(lvCub.rackingPadlocked);
           lvBm.acbKey.userData.keyBow.visible = !lvCub.castellLockedOut;
+
+          const lvLive = topo.trVolts > 0 || lvCub.vcbClosed;
+          const lvVolts = lvLive ? 440 : 0;
+          const lvAmps = (topo.trVolts >= 6000 && lvCub.vcbClosed) ? 540 : 0;
+          lvBm.anim.needleV += (lvVolts - lvBm.anim.needleV) * 0.18;
+          lvBm.anim.needleA += (lvAmps - lvBm.anim.needleA) * 0.18;
+          lvBm.needleV.rotation.z = needleRot(lvBm.anim.needleV / 500);
+          lvBm.needleA.rotation.z = needleRot(lvBm.anim.needleA / 1000);
+
+          setLamp(lvBm.lampBank[0], lvCub.vcbClosed);
+          setLamp(lvBm.lampBank[1], !lvCub.vcbClosed);
+          setLamp(lvBm.lampBank[2], lvLive);
+          setLamp(lvBm.lampBank[3], Boolean(topo.trBackfed));
+
+          lvBm.mimicPanel.update({
+            ...MIMIC_KINDS['ACB-TR1-LV'],
+            bus: topo.trVolts > 0,
+            load: true,
+            closed: lvCub.vcbClosed,
+            rack: 20,
+            earthed: topo.trEarthed,
+            backfed: Boolean(topo.trBackfed)
+          });
         }
 
         // Sync 3D 6.6 kV Live-Line Proving Wand
@@ -5848,6 +7994,9 @@
             }
           });
         });
+
+        // Update 3D Plasma Arc-Flash & Explosion VFX + Roof Arc-Relief Flap Blow-Open
+        updateArcFlashVFX();
       }
 
       if (isCamTweening) {
@@ -5859,8 +8008,275 @@
       }
 
       controls.update();
+
+      // Apply 600 ms Damped Sinusoidal 3D Camera Shake during Arc-Flash Blast
+      if (arcFlashState.shakeTimer > 0) {
+        arcFlashState.shakeTimer = Math.max(0, arcFlashState.shakeTimer - 0.016);
+        const sNorm = arcFlashState.shakeTimer / 0.60;
+        const amp = 0.055 * sNorm * sNorm;
+        const tNow = performance.now() * 0.055;
+        camera.position.x += Math.sin(tNow * 1.7) * amp;
+        camera.position.y += Math.cos(tNow * 2.3) * amp * 0.85;
+        camera.position.z += Math.sin(tNow * 1.3) * amp * 0.55;
+      }
+
       updateDividedCallouts();
       renderer.render(scene, camera);
+    }
+
+    /* 14B. 3D PLASMA ARC-FLASH & EXPLOSION VFX SYSTEM (A2) */
+    const arcFlashVfxGroup = new THREE.Group();
+    arcFlashVfxGroup.visible = false;
+    scene.add(arcFlashVfxGroup);
+
+    // Dual Plasma PointLights (Blue-White UV Core + Fiery Orange Copper Vapor)
+    const arcLightCore = new THREE.PointLight(0xd8f0ff, 0, 7.5, 1.4);
+    arcLightCore.position.set(0, 1.12, 0.22);
+    const arcLightFire = new THREE.PointLight(0xff6d00, 0, 9.0, 1.3);
+    arcLightFire.position.set(0, 1.55, 0.25);
+    arcFlashVfxGroup.add(arcLightCore, arcLightFire);
+
+    // Blinding Plasma Fireball Core & Outer Ionized Halo
+    const plasmaCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95, depthWrite: false });
+    const plasmaCoreMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.16, 2), plasmaCoreMat);
+    plasmaCoreMesh.position.set(0, 1.05, 0.16);
+    const plasmaHaloMat = new THREE.MeshBasicMaterial({ color: 0xff7700, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false });
+    const plasmaHaloMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.32, 2), plasmaHaloMat);
+    plasmaHaloMesh.position.set(0, 1.08, 0.18);
+    arcFlashVfxGroup.add(plasmaCoreMesh, plasmaHaloMesh);
+
+    // Expanding Overpressure Shockwave Ring
+    const shockwaveMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false });
+    const shockwaveRing = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.016, 10, 32), shockwaveMat);
+    shockwaveRing.position.set(0, 1.05, 0.24);
+    arcFlashVfxGroup.add(shockwaveRing);
+
+    // 6 Jagged 3D Electric Lightning Bolts (THREE.LineSegments across L1 / L2 / L3 spouts & busbars)
+    const BOLT_SEGMENTS = 10;
+    const lightningBolts = [];
+    const boltColors = [0xffffff, 0x80d8ff, 0xffd54f, 0x82b1ff, 0xffffff, 0xff9100];
+    for (let b = 0; b < 6; b++) {
+      const positions = new Float32Array(BOLT_SEGMENTS * 2 * 3);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const mat = new THREE.LineBasicMaterial({ color: boltColors[b % boltColors.length], transparent: true, opacity: 0.95 });
+      const segs = new THREE.LineSegments(geo, mat);
+      arcFlashVfxGroup.add(segs);
+      lightningBolts.push(segs);
+    }
+
+    // 36 Flying Molten Copper Sparks + 16 Rising Arc-Smoke Plume Puffs
+    const sparkParticles = [];
+    const sparkGeo = new THREE.BoxGeometry(0.016, 0.016, 0.045);
+    for (let i = 0; i < 36; i++) {
+      const sMat = new THREE.MeshBasicMaterial({
+        color: i % 3 === 0 ? 0xffffff : (i % 2 === 0 ? 0xffc400 : 0xff5500),
+        transparent: true,
+        opacity: 1.0,
+        depthWrite: false
+      });
+      const sMesh = new THREE.Mesh(sparkGeo, sMat);
+      arcFlashVfxGroup.add(sMesh);
+      sparkParticles.push({
+        mesh: sMesh,
+        vel: new THREE.Vector3(),
+        orig: new THREE.Vector3()
+      });
+    }
+
+    const smokeParticles = [];
+    const smokeGeo = new THREE.DodecahedronGeometry(0.09, 1);
+    for (let i = 0; i < 16; i++) {
+      const smMat = new THREE.MeshBasicMaterial({
+        color: i < 6 ? 0x3b3f46 : 0x22252a,
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false
+      });
+      const smMesh = new THREE.Mesh(smokeGeo, smMat);
+      arcFlashVfxGroup.add(smMesh);
+      smokeParticles.push({
+        mesh: smMesh,
+        vel: new THREE.Vector3()
+      });
+    }
+
+    const arcFlashState = {
+      active: false,
+      cubId: 'BT-M1',
+      timer: 0,
+      duration: 1.45,
+      shakeTimer: 0,
+      interlockPulseTimer: 0
+    };
+
+    function randomizeLightningBolts(intensityFrac) {
+      const anchors = [
+        [new THREE.Vector3(-0.19, 1.20, -0.05), new THREE.Vector3(0.00, 1.20, 0.18)],
+        [new THREE.Vector3(0.00, 1.20, -0.05), new THREE.Vector3(0.19, 1.20, 0.18)],
+        [new THREE.Vector3(-0.19, 0.82, -0.05), new THREE.Vector3(0.19, 1.20, 0.22)],
+        [new THREE.Vector3(-0.19, 1.80, -0.32), new THREE.Vector3(0.19, 1.64, -0.25)],
+        [new THREE.Vector3(0.00, 1.05, 0.12), new THREE.Vector3(-0.22, 1.45, 0.45)],
+        [new THREE.Vector3(0.00, 1.05, 0.12), new THREE.Vector3(0.22, 2.25, 0.15)]
+      ];
+      lightningBolts.forEach((bolt, idx) => {
+        const [pStart, pEnd] = anchors[idx % anchors.length];
+        const attr = bolt.geometry.attributes.position;
+        let prevX = pStart.x, prevY = pStart.y, prevZ = pStart.z;
+        for (let s = 1; s <= BOLT_SEGMENTS; s++) {
+          const frac = s / BOLT_SEGMENTS;
+          const jitter = s === BOLT_SEGMENTS ? 0 : (0.085 + 0.06 * intensityFrac);
+          const nx = THREE.MathUtils.lerp(pStart.x, pEnd.x, frac) + (Math.random() - 0.5) * jitter;
+          const ny = THREE.MathUtils.lerp(pStart.y, pEnd.y, frac) + (Math.random() - 0.5) * jitter;
+          const nz = THREE.MathUtils.lerp(pStart.z, pEnd.z, frac) + (Math.random() - 0.5) * jitter;
+          const baseIdx = (s - 1) * 2;
+          attr.setXYZ(baseIdx, prevX, prevY, prevZ);
+          attr.setXYZ(baseIdx + 1, nx, ny, nz);
+          prevX = nx; prevY = ny; prevZ = nz;
+        }
+        attr.needsUpdate = true;
+        bolt.material.opacity = Math.min(1, intensityFrac * 1.35);
+      });
+    }
+
+    window.trigger3DArcFlash = (cubId = 'BT-M1') => {
+      const targetId = bayModels[cubId] ? cubId : 'BT-M1';
+      const bm = bayModels[targetId];
+      arcFlashState.active = true;
+      arcFlashState.cubId = targetId;
+      arcFlashState.timer = arcFlashState.duration;
+      arcFlashState.shakeTimer = 0.60;
+
+      arcFlashVfxGroup.position.set(bm ? bm.root.position.x : 0, 0, 0.04);
+      arcFlashVfxGroup.visible = true;
+
+      // Reset particles
+      sparkParticles.forEach((sp, idx) => {
+        const fromRoof = idx < 12;
+        sp.orig.set(
+          (Math.random() - 0.5) * 0.34,
+          fromRoof ? 2.22 : (0.85 + Math.random() * 0.45),
+          fromRoof ? (Math.random() - 0.5) * 0.25 : (0.15 + Math.random() * 0.25)
+        );
+        sp.mesh.position.copy(sp.orig);
+        sp.vel.set(
+          (Math.random() - 0.5) * 3.2,
+          fromRoof ? (1.8 + Math.random() * 2.6) : (0.6 + Math.random() * 2.4),
+          fromRoof ? (Math.random() - 0.5) * 1.8 : (1.2 + Math.random() * 2.8)
+        );
+        sp.mesh.lookAt(sp.mesh.position.clone().add(sp.vel));
+        sp.mesh.material.opacity = 1.0;
+      });
+
+      smokeParticles.forEach((sm, idx) => {
+        const fromRoof = idx < 10;
+        sm.mesh.position.set(
+          (Math.random() - 0.5) * 0.38,
+          fromRoof ? 2.24 : (1.15 + Math.random() * 0.35),
+          fromRoof ? (0.18 - (idx % 2) * 0.48) : 0.38
+        );
+        sm.mesh.scale.setScalar(0.45 + Math.random() * 0.4);
+        sm.vel.set(
+          (Math.random() - 0.5) * 0.45,
+          0.85 + Math.random() * 0.95,
+          (Math.random() - 0.5) * 0.45
+        );
+        sm.mesh.material.opacity = 0.62;
+      });
+
+      randomizeLightningBolts(1.0);
+    };
+
+    window.trigger3DInterlockPulse = (cubId = 'BT-M1') => {
+      arcFlashState.interlockPulseTimer = 0.65;
+    };
+
+    function updateArcFlashVFX() {
+      const dt = 0.016;
+
+      // Tier 1 Mechanical Interlock Pulse on Floor Selection Ring
+      if (arcFlashState.interlockPulseTimer > 0) {
+        arcFlashState.interlockPulseTimer = Math.max(0, arcFlashState.interlockPulseTimer - dt);
+        const pulse = Math.sin(arcFlashState.interlockPulseTimer * 28) * 0.5 + 0.5;
+        baySelectRing.material.color.setHex(pulse > 0.4 ? 0xd93829 : 0x1f6f78);
+      } else if (baySelectRing.material.color.getHex() !== 0x1f6f78) {
+        baySelectRing.material.color.setHex(0x1f6f78);
+      }
+
+      // Reset all roof AR flaps when blast is inactive
+      if (!arcFlashState.active || arcFlashState.timer <= 0) {
+        arcFlashState.active = false;
+        arcFlashVfxGroup.visible = false;
+        arcLightCore.intensity = 0;
+        arcLightFire.intensity = 0;
+        ['DG1', 'BT1', 'BT-M1', 'TR1-HV'].forEach((id) => {
+          const bm = bayModels[id];
+          if (bm && bm.arFlaps) {
+            bm.arFlaps.forEach((f) => {
+              f.mesh.rotation.x += (f.baseRotX - f.mesh.rotation.x) * 0.22;
+              f.mesh.position.y += (f.baseY - f.mesh.position.y) * 0.22;
+            });
+          }
+        });
+        return;
+      }
+
+      arcFlashState.timer = Math.max(0, arcFlashState.timer - dt);
+      const progress = 1.0 - (arcFlashState.timer / arcFlashState.duration);
+      const decay = Math.pow(Math.max(0, 1.0 - progress), 1.55);
+
+      const bm = bayModels[arcFlashState.cubId];
+      if (bm) {
+        arcFlashVfxGroup.position.x = bm.root.position.x;
+        // Dynamically blow open roof Arc-Relief Flaps (AR) upward from overpressure
+        if (bm.arFlaps) {
+          const flapOpen = Math.sin(Math.min(1, progress * 4.5) * Math.PI * 0.5) * decay;
+          bm.arFlaps.forEach((f) => {
+            f.mesh.rotation.x = f.baseRotX - flapOpen * 1.12;
+            f.mesh.position.y = f.baseY + flapOpen * 0.065;
+          });
+        }
+      }
+
+      // PointLight intensity decay (25 -> 0) with high-frequency plasma flicker
+      const flicker = 0.72 + 0.28 * Math.sin(performance.now() * 0.09);
+      arcLightCore.intensity = 25.0 * decay * flicker;
+      arcLightFire.intensity = 16.0 * decay;
+
+      // Plasma core & halo expansion
+      const coreScale = (0.65 + Math.sin(progress * Math.PI) * 1.65) * flicker;
+      plasmaCoreMesh.scale.setScalar(Math.max(0.05, coreScale));
+      plasmaCoreMat.opacity = Math.min(1, decay * 1.35);
+      plasmaHaloMesh.scale.setScalar(Math.max(0.1, coreScale * 1.45));
+      plasmaHaloMat.opacity = decay * 0.65;
+
+      // Shockwave ring expansion
+      const ringScale = 0.5 + progress * 5.2;
+      shockwaveRing.scale.setScalar(ringScale);
+      shockwaveRing.rotation.x = Math.PI * 0.18 * progress;
+      shockwaveMat.opacity = Math.max(0, (1.0 - progress * 1.35) * 0.85);
+
+      // Re-jitter 3D lightning bolts every frame while plasma is active
+      if (progress < 0.78) {
+        randomizeLightningBolts(decay);
+        lightningBolts.forEach(b => { b.visible = true; });
+      } else {
+        lightningBolts.forEach(b => { b.visible = false; });
+      }
+
+      // Update flying molten copper sparks with gravity
+      sparkParticles.forEach((sp) => {
+        sp.mesh.position.addScaledVector(sp.vel, dt);
+        sp.vel.y -= 5.8 * dt;
+        sp.mesh.material.opacity = Math.max(0, decay);
+      });
+
+      // Update rising smoke puffs through vented AR roof flaps
+      smokeParticles.forEach((sm) => {
+        sm.mesh.position.addScaledVector(sm.vel, dt);
+        sm.mesh.scale.multiplyScalar(1.012);
+        sm.mesh.material.opacity = Math.max(0, (1.0 - progress) * 0.58);
+      });
     }
 
     // ResizeObserver for Embedded Center Viewport
