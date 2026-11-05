@@ -1340,11 +1340,11 @@
     }
     .arc-flash-hud-banner {
       position: absolute;
-      top: 12px;
+      top: 28px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 26;
-      width: min(640px, calc(100% - 48px));
+      width: min(536px, calc(100% - 48px));
       background: rgba(24, 28, 34, 0.95);
       color: #f8fafc;
       border: 2px solid #ef4444;
@@ -1357,6 +1357,9 @@
       animation: hazardBorderPulse 0.9s infinite ease-in-out;
     }
     .arc-flash-hud-banner[hidden] { display: none !important; }
+    .arc-flash-hud-banner:not([hidden]) ~ .toast-host {
+      top: 178px;
+    }
     .arc-hud-svg { width: 54px; height: 54px; flex: none; }
     .arc-hud-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
     .arc-hud-kicker,
@@ -2308,8 +2311,12 @@
         }
       };
     }
+    SIM.cubicles = createCubicles();
 
     function getTopology() {
+      if (!SIM.cubicles || !SIM.cubicles['DG1']) {
+        SIM.cubicles = createCubicles();
+      }
       const c = SIM.cubicles;
       const portLive = c['DG1'].vcbClosed && c['DG1'].rackingTurns === 20;
       const stbdLive = portLive && c['BT1'].vcbClosed && c['BT1'].rackingTurns === 20;
@@ -7667,6 +7674,9 @@
 
     function solveVerticalSpacing(list, minY, maxY, gap) {
       if (list.length === 0) return;
+      for (let i = 0; i < list.length; i++) {
+        list[i].ly = THREE.MathUtils.clamp(list[i].ay, minY, maxY);
+      }
       list.sort((a, b) => a.ly - b.ly);
       list[0].ly = Math.max(minY, list[0].ly);
       for (let i = 1; i < list.length; i++) {
@@ -7704,8 +7714,10 @@
       const bm = bayModels[anchorCubId];
       const exp = (selCub === anchorCubId) ? cadState.explode : 0.0;
 
-      const minY = 24;
-      const maxY = Math.max(minY + 140, h - 24);
+      const minYLeft = 38;
+      const maxYLeft = Math.max(minYLeft + 140, h - 64);
+      const minYRight = 40;
+      const maxYRight = Math.max(minYRight + 140, h - 64);
       const visibleItems = [];
 
       calloutItems.forEach((c) => {
@@ -7729,7 +7741,7 @@
         c.visible = true;
         c.ax = (tmpWorld.x * 0.5 + 0.5) * w;
         c.ay = (-(tmpWorld.y * 0.5) + 0.5) * h;
-        c.ly = THREE.MathUtils.clamp(c.ay, minY, maxY);
+        c.ly = c.ay;
         visibleItems.push(c);
       });
 
@@ -7741,11 +7753,11 @@
       leftCol.forEach((c) => { c.side = 'left'; });
       rightCol.forEach((c) => { c.side = 'right'; });
 
-      const maxColLen = Math.max(1, leftCol.length, rightCol.length);
-      const dynamicGap = Math.min(30, Math.max(22, Math.floor((maxY - minY) / maxColLen)));
+      const leftGap = Math.min(30, Math.max(22, Math.floor((maxYLeft - minYLeft) / Math.max(1, leftCol.length))));
+      const rightGap = Math.min(30, Math.max(22, Math.floor((maxYRight - minYRight) / Math.max(1, rightCol.length))));
 
-      solveVerticalSpacing(leftCol, minY, maxY, dynamicGap);
-      solveVerticalSpacing(rightCol, minY, maxY, dynamicGap);
+      solveVerticalSpacing(leftCol, minYLeft, maxYLeft, leftGap);
+      solveVerticalSpacing(rightCol, minYRight, maxYRight, rightGap);
 
       const LEFT_EDGE_X = 192;
       const RIGHT_EDGE_X = w - 192;
@@ -7839,7 +7851,7 @@
       // Smoothly expand two-tier concrete studio plinth so exploded parts never overhang floor
       plinthGroup.scale.set(1.0 + globalExp * 1.15, 1.0, 1.0 + globalExp * 1.65);
 
-      if (window.SIM && window.SIM.cubicles) {
+      if (window.SIM && window.SIM.cubicles && window.SIM.cubicles['DG1'] && typeof window.getTopology === 'function') {
         const sim = window.SIM;
         const topo = window.getTopology();
         const activeId = sim.selectedCubicle;
