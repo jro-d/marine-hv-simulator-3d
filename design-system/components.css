@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+/* Fonts: load design-system/fonts.css (IBM Plex, embedded) before this file. */
 /* ==========================================================================
    Marine HV Console — component stylesheet
    Loaded after tokens.css. Every value is a token; no raw colours.
