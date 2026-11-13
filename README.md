@@ -7,6 +7,8 @@ An interactive, zero-build **Three.js (`r160`) 3D Marine High Voltage (6.6 kV, 6
 ## Key Features
 
 ### 1. Ultra-Detailed 5-Bay 3D Switchboard Lineup (`2,280` Procedural CAD Meshes)
+- **Photoreal PBR Rendering (VCB-teardown look):** `RoomEnvironment` / PMREM image-based studio reflections, ACES tone mapping, soft key-light shadows, orange-peel powder-coat and brushed-zinc bump finishes, and clear-coated cast-epoxy resin. Every registered part is refined at load time (rolled sheet-metal edges, smooth machined/cast round parts; hex fasteners keep their flats).
+- **Reference-Driven Construction Detail:** bolted inspection-window frames with glazing gaskets, perimeter-screwed side skins, roofs and rear covers, black louvre grilles, moulded creepage sheds on the pole barrels, shedded brown cable terminations with crimped lugs and red/yellow/blue phase tapes, green/yellow cable-screen earth leads to an insulated earth bar, cable cleats and gland plates, and a fully detailed `C5` ACB (trip-unit LCD, rating label, ribbed moulded case, rear terminals and risers to the 4-wire busbars). Fastener rows are merged per row so the lineup stays fast.
 - **Full 5-Cubicle Marine Switchboard Lineup** mounted on an adaptive two-tier studio concrete plinth with deployable ribbed **15 kV Dielectric Floor Matting**:
   - **`C1 · DG1`** — Port 6.6 kV Diesel Generator 1 Incomer (`3,600 kVA`)
   - **`C2 · BT1`** — 6.6 kV Bus-Tie Vacuum Circuit Breaker (couples Port Bus A & Starboard Bus B)
@@ -59,7 +61,11 @@ An interactive, zero-build **Three.js (`r160`) 3D Marine High Voltage (6.6 kV, 6
 No build tools or package installations are required:
 
 1. Open `index.html` directly in any modern desktop browser (Chrome, Edge, Firefox, or Safari) with an internet connection (loads `three@0.160.0` via CDN ES module `importmap`), **or**
-2. Serve locally:
+2. Open the **offline single-file edition** `dist/marine-hv-simulator-3d-offline.html` — Three.js is embedded, so it works with no internet or server. Rebuild it after editing `index.html` with:
+   ```bash
+   node tools/build-offline.mjs
+   ```
+3. Serve locally:
    ```bash
    npx serve .
    ```

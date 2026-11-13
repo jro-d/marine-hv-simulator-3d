@@ -4646,6 +4646,9 @@
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+    import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
     const host = document.getElementById('threeCanvasHost');
     const stageWrap = document.getElementById('stage3DWrap');
@@ -4662,15 +4665,25 @@
     const camera = new THREE.PerspectiveCamera(38, initW / initH, 0.05, 80);
     camera.position.set(0.58, 1.62, 3.25);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     renderer.setSize(initW, initH);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.10;
+    renderer.toneMappingExposure = 0.98;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     host.appendChild(renderer.domElement);
+
+    // Image-based studio reflections (same RoomEnvironment/PMREM rig as the VCB teardown model):
+    // gives powder-coat, copper, resin and glass believable highlights instead of flat shading.
+    {
+      const roomEnv = new RoomEnvironment();
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      scene.environment = pmrem.fromScene(roomEnv, 0.04).texture;
+      roomEnv.dispose();
+      pmrem.dispose();
+    }
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -4702,11 +4715,11 @@
     }, { passive: false });
 
     // 4-Light Architectural CAD Studio Rig
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xdce3ec, 0.96);
+    const hemiLight = new THREE.HemisphereLight(0xf3faff, 0x5d6774, 0.55);
     hemiLight.position.set(0, 9, 0);
     scene.add(hemiLight);
 
-    const keyLight = new THREE.DirectionalLight(0xfffcf6, 1.36);
+    const keyLight = new THREE.DirectionalLight(0xfff4e4, 2.35);
     keyLight.position.set(5.2, 7.8, 6.0);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.set(2048, 2048);
@@ -4716,14 +4729,16 @@
     keyLight.shadow.camera.right = 6.0;
     keyLight.shadow.camera.top = 5.0;
     keyLight.shadow.camera.bottom = -2.5;
-    keyLight.shadow.bias = -0.0004;
+    keyLight.shadow.bias = -0.0003;
+    keyLight.shadow.normalBias = 0.012;
+    keyLight.shadow.radius = 3;
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0xdce8f8, 0.66);
+    const rimLight = new THREE.DirectionalLight(0xe3f1ff, 0.95);
     rimLight.position.set(-5.4, 4.6, -5.2);
     scene.add(rimLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.44);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.55);
     fillLight.position.set(0.0, 2.2, 6.2);
     scene.add(fillLight);
 
@@ -4792,42 +4807,93 @@
     baySelectRing.position.set(0, 0.0025, -0.04);
     scene.add(baySelectRing);
 
-    /* 3. SOFT INDUSTRIAL CAD MATERIAL PALETTE */
+    /* 3. PBR MATERIAL PALETTE (VCB-teardown look: brushed zinc, orange-peel powder coat, clearcoat cast resin) */
+    let texSeed = 37;
+    function seededRand() { texSeed = (1664525 * texSeed + 1013904223) >>> 0; return texSeed / 4294967296; }
+    function makeSurfaceTex(w, h, draw, repeatX = 1, repeatY = 1) {
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      draw(cv.getContext('2d'), w, h);
+      const t = new THREE.CanvasTexture(cv);
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(repeatX, repeatY);
+      t.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+      return t;
+    }
+    // Directional grain for zinc-plated / stainless hardware
+    const brushedBump = makeSurfaceTex(256, 256, (c, w, h) => {
+      c.fillStyle = '#aaa'; c.fillRect(0, 0, w, h);
+      for (let y = 0; y < h; y++) { const a = Math.floor(130 + seededRand() * 80); c.fillStyle = `rgb(${a},${a},${a})`; c.fillRect(0, y, w, 1); }
+      for (let i = 0; i < 6000; i++) { c.fillStyle = `rgba(40,40,40,${seededRand() * 0.09})`; c.fillRect(seededRand() * w, seededRand() * h, seededRand() * 40, 1); }
+    }, 3, 3);
+    // Fine orange-peel texture of electrostatic powder coat on the enclosure sheet steel
+    const powderBump = makeSurfaceTex(256, 256, (c, w, h) => {
+      c.fillStyle = '#808080'; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < 9000; i++) {
+        const v = Math.floor(95 + seededRand() * 70);
+        c.fillStyle = `rgba(${v},${v},${v},0.55)`;
+        c.beginPath(); c.arc(seededRand() * w, seededRand() * h, 0.6 + seededRand() * 2.2, 0, Math.PI * 2); c.fill();
+      }
+    }, 6, 6);
+    // Faint casting-flow mottling for epoxy resin parts
+    const resinRough = makeSurfaceTex(128, 128, (c, w, h) => {
+      c.fillStyle = '#5a5a5a'; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < 260; i++) {
+        const v = Math.floor(70 + seededRand() * 60);
+        c.fillStyle = `rgba(${v},${v},${v},0.25)`;
+        c.beginPath(); c.arc(seededRand() * w, seededRand() * h, 3 + seededRand() * 9, 0, Math.PI * 2); c.fill();
+      }
+    }, 2, 2);
+
+    const std = (color, metalness, roughness, extra = {}) => new THREE.MeshStandardMaterial({ color, metalness, roughness, ...extra });
+    const phys = (color, metalness, roughness, extra = {}) => new THREE.MeshPhysicalMaterial({ color, metalness, roughness, ...extra });
+    const powder = (color, roughness = 0.5, metalness = 0.22) => std(color, metalness, roughness, { bumpMap: powderBump, bumpScale: 0.0035 });
+    const brushedMetal = (color, metalness = 0.84, roughness = 0.32) => std(color, metalness, roughness, { bumpMap: brushedBump, bumpScale: 0.004 });
+    const castResin = (color, roughness = 0.28) => phys(color, 0.05, roughness, { clearcoat: 0.65, clearcoatRoughness: 0.16, roughnessMap: resinRough });
+
     const MAT = {
-      steelPanel: new THREE.MeshStandardMaterial({ color: 0xcbd3dc, roughness: 0.36, metalness: 0.24 }),
-      steelLight: new THREE.MeshStandardMaterial({ color: 0xdde3ea, roughness: 0.33, metalness: 0.20 }),
-      steelTrim: new THREE.MeshStandardMaterial({ color: 0x9aa8b6, roughness: 0.34, metalness: 0.36 }),
-      galvSteel: new THREE.MeshStandardMaterial({ color: 0xb5c0cb, roughness: 0.30, metalness: 0.48 }),
-      carriageSteel: new THREE.MeshStandardMaterial({ color: 0x8594a3, roughness: 0.38, metalness: 0.32 }),
-      skidSteel: new THREE.MeshStandardMaterial({ color: 0x566370, roughness: 0.46, metalness: 0.36 }),
-      rubberMount: new THREE.MeshStandardMaterial({ color: 0x323940, roughness: 0.82, metalness: 0.05 }),
-      darkConsole: new THREE.MeshStandardMaterial({ color: 0x313c47, roughness: 0.46, metalness: 0.22 }),
-      iedCase: new THREE.MeshStandardMaterial({ color: 0x45525f, roughness: 0.40, metalness: 0.28 }),
-      dinBlock: new THREE.MeshStandardMaterial({ color: 0xd0cec7, roughness: 0.55, metalness: 0.06 }),
-      epoxyPole: new THREE.MeshStandardMaterial({ color: 0xa6534c, roughness: 0.38, metalness: 0.06 }),
-      ctResin: new THREE.MeshStandardMaterial({ color: 0x935648, roughness: 0.42, metalness: 0.08 }),
-      arresterSilicone: new THREE.MeshStandardMaterial({ color: 0x7c8792, roughness: 0.50, metalness: 0.06 }),
-      aluminaCeramic: new THREE.MeshStandardMaterial({ color: 0xf4f6f8, roughness: 0.20, metalness: 0.04 }),
-      copper: new THREE.MeshStandardMaterial({ color: 0xd47a42, roughness: 0.27, metalness: 0.80 }),
-      silverContact: new THREE.MeshStandardMaterial({ color: 0xe6ecf2, roughness: 0.18, metalness: 0.88 }),
-      brass: new THREE.MeshStandardMaterial({ color: 0xc99626, roughness: 0.26, metalness: 0.82 }),
-      bronzeMesh: new THREE.MeshStandardMaterial({ color: 0x9c7b38, roughness: 0.44, metalness: 0.62 }),
-      springCloseGreen: new THREE.MeshStandardMaterial({ color: 0x2f7450, roughness: 0.34, metalness: 0.42 }),
-      springTripRed: new THREE.MeshStandardMaterial({ color: 0xad4337, roughness: 0.34, metalness: 0.42 }),
-      phaseL1: new THREE.MeshStandardMaterial({ color: 0xb8473b, roughness: 0.44, metalness: 0.12 }),
-      phaseL2: new THREE.MeshStandardMaterial({ color: 0xc48b28, roughness: 0.44, metalness: 0.12 }),
-      phaseL3: new THREE.MeshStandardMaterial({ color: 0x38669c, roughness: 0.44, metalness: 0.12 }),
-      shutterRed: new THREE.MeshStandardMaterial({ color: 0xc23b30, roughness: 0.40, metalness: 0.16 }),
-      shutterYellow: new THREE.MeshStandardMaterial({ color: 0xdba328, roughness: 0.40, metalness: 0.16 }),
-      padlockRed: new THREE.MeshStandardMaterial({ color: 0xb82e24, roughness: 0.32, metalness: 0.22 }),
-      earthGreen: new THREE.MeshStandardMaterial({ color: 0x2d7a4d, roughness: 0.36, metalness: 0.26 }),
-      cmeCable: new THREE.MeshStandardMaterial({ color: 0x7cb518, roughness: 0.42, metalness: 0.12 }),
-      xlpeCable: new THREE.MeshStandardMaterial({ color: 0x3b4550, roughness: 0.64, metalness: 0.10 }),
-      stressCone: new THREE.MeshStandardMaterial({ color: 0x4b5663, roughness: 0.52, metalness: 0.08 }),
-      conduitFlex: new THREE.MeshStandardMaterial({ color: 0x49545e, roughness: 0.56, metalness: 0.18 }),
-      wireBlue: new THREE.MeshStandardMaterial({ color: 0x3a6ea5, roughness: 0.48, metalness: 0.08 }),
-      windowGlass: new THREE.MeshStandardMaterial({ color: 0xdbeafe, roughness: 0.12, metalness: 0.08, transparent: true, opacity: 0.30, depthWrite: false }),
-      wandOrange: new THREE.MeshStandardMaterial({ color: 0xd95d1e, roughness: 0.32, metalness: 0.12 })
+      // Enclosure: RAL 7035-style light-grey powder-coated sheet steel (front doors slightly lighter)
+      steelPanel: powder(0xb9bec1, 0.44, 0.34),
+      steelLight: powder(0xc6cacc, 0.42, 0.32),
+      steelTrim: brushedMetal(0x9aa3a8, 0.72, 0.34),
+      galvSteel: brushedMetal(0xa9ada6, 0.86, 0.33),
+      carriageSteel: brushedMetal(0x8e979b, 0.70, 0.38),
+      skidSteel: powder(0x3d4850, 0.48, 0.42),
+      rubberMount: std(0x1f2427, 0.04, 0.78),
+      darkConsole: powder(0x22292d, 0.48, 0.30),
+      iedCase: powder(0x3a444b, 0.40, 0.40),
+      dinBlock: std(0xd9d6cc, 0.02, 0.58),
+      // Cast cycloaliphatic epoxy: deep red-brown with a glossy clear coat (reference pole housings)
+      epoxyPole: castResin(0x6a2216, 0.27),
+      ctResin: castResin(0x5c2015, 0.30),
+      arresterSilicone: phys(0x6e7a84, 0.02, 0.46, { clearcoat: 0.3, clearcoatRoughness: 0.3 }),
+      aluminaCeramic: phys(0xebe7dc, 0.03, 0.22, { clearcoat: 0.6, clearcoatRoughness: 0.15 }),
+      copper: std(0xc77d47, 0.84, 0.31, { envMapIntensity: 1.35 }),
+      silverContact: std(0xcfd5d8, 0.92, 0.2),
+      brass: std(0xbe9342, 0.80, 0.28),
+      bronzeMesh: brushedMetal(0x8f6f3a, 0.66, 0.42),
+      springCloseGreen: std(0x2a6a48, 0.45, 0.34),
+      springTripRed: std(0xa23a2e, 0.45, 0.34),
+      phaseL1: std(0xb3271f, 0.06, 0.42),
+      phaseL2: std(0xe0b31c, 0.06, 0.42),
+      phaseL3: std(0x1f4f9c, 0.06, 0.42),
+      shutterRed: std(0xb8281f, 0.12, 0.38),
+      shutterYellow: std(0xe0a51f, 0.12, 0.38),
+      padlockRed: std(0xb3241b, 0.2, 0.32),
+      earthGreen: std(0x2b7a47, 0.24, 0.36),
+      cmeCable: std(0x7cb518, 0.1, 0.42),
+      xlpeCable: std(0x16191b, 0.04, 0.52),
+      stressCone: castResin(0x55190f, 0.34),
+      conduitFlex: std(0x262c30, 0.2, 0.5),
+      wireBlue: std(0x2f5f93, 0.06, 0.5),
+      windowGlass: phys(0xdfeefa, 0.0, 0.05, { transparent: true, opacity: 0.22, depthWrite: false, clearcoat: 1.0, clearcoatRoughness: 0.04 }),
+      wandOrange: std(0xd95d1e, 0.12, 0.32),
+      // New reference-driven finishes
+      navyBase: powder(0x1d3352, 0.46, 0.30),
+      earthYG: std(0x3f9b3a, 0.05, 0.48),
+      earthYGStripe: std(0xe6c21c, 0.05, 0.48),
+      louverBlack: powder(0x1a1f22, 0.5, 0.25),
+      gasket: std(0x15191b, 0.0, 0.8)
     };
 
     /* 4. PROCEDURAL CANVAS TEXTURES (NAMEPLATES, ANALOG DIALS, IED HMI, COUNTER) */
@@ -5603,7 +5669,56 @@
     const PART_KEYS = Object.keys(SUBSYSTEMS);
     const allRegisteredMeshes = [];
 
+    // Fabrication-quality geometry pass applied to every registered part:
+    // sheet-metal boxes get small rolled edges that catch the studio highlights, round parts get
+    // enough facets to read as machined/cast at inspection distance. Hexagonal (6-sided) fasteners
+    // keep their flats. Identical refined geometries are shared through a cache.
+    const refinedGeoCache = new Map();
+    function refineGeometry(mesh) {
+      const g = mesh.geometry;
+      if (!g || !g.parameters || mesh.userData.noRefine) return;
+      const p = g.parameters;
+      let key = null;
+      let make = null;
+      if (g.type === 'BoxGeometry') {
+        if (mesh.material && mesh.material.map) return; // printed faces keep box UV layout
+        const m = Math.min(p.width, p.height, p.depth);
+        if (m < 0.003) return;
+        const r = Math.min(0.0045, m * 0.28);
+        key = `rb:${p.width}:${p.height}:${p.depth}:${r}`;
+        make = () => new RoundedBoxGeometry(p.width, p.height, p.depth, 2, r);
+      } else if (g.type === 'CylinderGeometry') {
+        const n = p.radialSegments;
+        if (n === 6 || n < 8) return;
+        const maxR = Math.max(p.radiusTop, p.radiusBottom);
+        const target = maxR > 0.03 ? 56 : (maxR > 0.012 ? 36 : 24);
+        if (n >= target) return;
+        key = `cy:${p.radiusTop}:${p.radiusBottom}:${p.height}:${target}:${p.heightSegments}:${p.openEnded}:${p.thetaStart}:${p.thetaLength}`;
+        make = () => new THREE.CylinderGeometry(p.radiusTop, p.radiusBottom, p.height, target, p.heightSegments, p.openEnded, p.thetaStart, p.thetaLength);
+      } else if (g.type === 'ConeGeometry') {
+        if (p.radialSegments >= 32) return;
+        key = `co:${p.radius}:${p.height}:${p.heightSegments}:${p.openEnded}`;
+        make = () => new THREE.ConeGeometry(p.radius, p.height, 36, p.heightSegments, p.openEnded, p.thetaStart, p.thetaLength);
+      } else if (g.type === 'TorusGeometry') {
+        const tub = Math.max(p.tubularSegments, Math.ceil(56 * p.arc / (Math.PI * 2)));
+        const rad = Math.max(p.radialSegments, 12);
+        if (tub === p.tubularSegments && rad === p.radialSegments) return;
+        key = `to:${p.radius}:${p.tube}:${rad}:${tub}:${p.arc}`;
+        make = () => new THREE.TorusGeometry(p.radius, p.tube, rad, tub, p.arc);
+      } else if (g.type === 'SphereGeometry') {
+        if (p.widthSegments >= 24) return;
+        key = `sp:${p.radius}:${p.phiStart}:${p.phiLength}:${p.thetaStart}:${p.thetaLength}`;
+        make = () => new THREE.SphereGeometry(p.radius, 24, 16, p.phiStart, p.phiLength, p.thetaStart, p.thetaLength);
+      }
+      if (!key) return;
+      let ng = refinedGeoCache.get(key);
+      if (!ng) { ng = make(); refinedGeoCache.set(key, ng); }
+      g.dispose();
+      mesh.geometry = ng;
+    }
+
     function regMesh(mesh, partKey, cubId, opts = {}) {
+      refineGeometry(mesh);
       const orig = mesh.material.clone();
       const ghost = mesh.material.clone();
       ghost.transparent = true;
@@ -5626,6 +5741,7 @@
         ghostMaterial: ghost,
         xrayMaterial: xray,
         isOuterXray: Boolean(opts.isOuterXray),
+        baseCastShadow: mesh.castShadow,
         terminalId: opts.terminalId || null
       };
       allRegisteredMeshes.push(mesh);
@@ -5709,6 +5825,86 @@
       return g;
     }
 
+    /* 6a. MERGED FASTENER ROWS (one draw call per row of screws/bolts; keeps the 5-bay lineup fast) */
+    const _AX = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
+    function fastenerGeometry(points, { axis = 'z', dir = 1, r = 0.0052, h = 0.0040, washer = true, hex = false } = {}) {
+      const base = [];
+      let off = 0;
+      if (washer) { base.push({ g: new THREE.CylinderGeometry(r * 1.5, r * 1.5, h * 0.32, 20), off: h * 0.16 }); off = h * 0.32; }
+      base.push({ g: hex ? new THREE.CylinderGeometry(r, r, h, 6) : new THREE.CylinderGeometry(r * 0.72, r, h, 20), off: off + h * 0.5 });
+      if (hex) base.push({ g: new THREE.CylinderGeometry(r * 0.42, r * 0.42, h * 0.9, 12), off: off + h * 1.2 }); // protruding thread end
+      const q = new THREE.Quaternion().setFromUnitVectors(_AX.y, _AX[axis].clone().multiplyScalar(dir));
+      const parts = [];
+      points.forEach(([x, y, z]) => {
+        base.forEach(({ g, off: o }) => {
+          const c = g.clone();
+          c.translate(0, o, 0);
+          c.applyQuaternion(q);
+          c.translate(x, y, z);
+          parts.push(c);
+        });
+      });
+      const merged = mergeGeometries(parts, false);
+      parts.forEach((c) => c.dispose());
+      base.forEach((b) => b.g.dispose());
+      return merged;
+    }
+    function addFasteners(parent, partKey, cubId, points, opts = {}) {
+      if (!points.length) return null;
+      const m = regMesh(new THREE.Mesh(fastenerGeometry(points, opts), opts.mat || MAT.galvSteel), partKey, cubId, { castShadow: false });
+      parent.add(m);
+      return m;
+    }
+    // Points spaced roughly `step` apart around a rectangle in a plane (plane: 'xy' at depth c, 'zy' at x=c, 'xz' at y=c)
+    function rectPoints(a0, a1, b0, b1, step, plane, c) {
+      const pts = [];
+      const na = Math.max(1, Math.round((a1 - a0) / step));
+      const nb = Math.max(1, Math.round((b1 - b0) / step));
+      const push = (a, b) => pts.push(plane === 'xy' ? [a, b, c] : plane === 'zy' ? [c, b, a] : [a, c, b]);
+      for (let i = 0; i <= na; i++) { const a = a0 + (a1 - a0) * i / na; push(a, b0); push(a, b1); }
+      for (let j = 1; j < nb; j++) { const b = b0 + (b1 - b0) * j / nb; push(a0, b); push(a1, b); }
+      return pts;
+    }
+    // Merged run of identical boxes (louvre slats, cable-cleat teeth, etc.)
+    function addBoxRun(parent, partKey, cubId, size, positions, mat, rotX = 0) {
+      const parts = positions.map(([x, y, z]) => {
+        const g = new RoundedBoxGeometry(size[0], size[1], size[2], 2, Math.min(0.002, Math.min(...size) * 0.3));
+        if (rotX) g.rotateX(rotX);
+        g.translate(x, y, z);
+        return g;
+      });
+      const merged = mergeGeometries(parts, false);
+      parts.forEach((g) => g.dispose());
+      const m = regMesh(new THREE.Mesh(merged, mat), partKey, cubId);
+      parent.add(m);
+      return m;
+    }
+    // Moulded heat-shrink / cold-applied cable termination body with three rain sheds (reference: brown boots)
+    const terminationProfile = [
+      [0.0, -0.075], [0.027, -0.075], [0.029, -0.060], [0.034, -0.040], [0.038, -0.020], [0.036, 0.000],
+      [0.046, 0.006], [0.030, 0.012], [0.030, 0.026], [0.044, 0.032], [0.028, 0.038], [0.026, 0.052],
+      [0.040, 0.058], [0.024, 0.064], [0.020, 0.080], [0.0, 0.080]
+    ].map(([r, y]) => new THREE.Vector2(r, y));
+    const terminationGeo = new THREE.LatheGeometry(terminationProfile, 40);
+
+    // Green/yellow protective-earth lead: green tube with yellow helical stripe bands
+    function addEarthLead(parent, partKey, cubId, pts, radius = 0.0045) {
+      const curve = new THREE.CatmullRomCurve3(pts.map((p) => (p.isVector3 ? p : new THREE.Vector3(...p))));
+      parent.add(regMesh(new THREE.Mesh(new THREE.TubeGeometry(curve, 32, radius, 10, false), MAT.earthYG), partKey, cubId));
+      const bands = [];
+      const n = Math.max(4, Math.floor(curve.getLength() / 0.03));
+      for (let i = 1; i < n; i += 2) {
+        const t0 = i / n, t1 = Math.min(1, (i + 0.55) / n);
+        const seg = new THREE.CatmullRomCurve3([curve.getPoint(t0), curve.getPoint((t0 + t1) / 2), curve.getPoint(t1)]);
+        bands.push(new THREE.TubeGeometry(seg, 4, radius * 1.06, 10, false));
+      }
+      if (bands.length) {
+        const merged = mergeGeometries(bands, false);
+        bands.forEach((b) => b.dispose());
+        parent.add(regMesh(new THREE.Mesh(merged, MAT.earthYGStripe), partKey, cubId, { castShadow: false }));
+      }
+    }
+
     /* 6b. FUNCTIONAL PANEL-FURNITURE BUILDERS (live meters, pilot lamps, legends, lens-bezel HMI) */
     const LAMP_SPECS = {
       red: { lit: 0xe0483b, dim: 0x7a2a24 },
@@ -5779,7 +5975,7 @@
 
     // Marine switchboard storm grab-rail (tubular handrail with navy end brackets across the horizontal door seam)
     function addStormHandrail(parent, partKey, cubId, width, y, z) {
-      const bracketMat = new THREE.MeshStandardMaterial({ color: 0x2f4a6b, roughness: 0.45, metalness: 0.25 });
+      const bracketMat = MAT.navyBase;
       const bx = width * 0.5 - 0.026;
       [-bx, bx].forEach((x) => {
         const brk = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.022, 0.022), bracketMat), partKey, cubId);
@@ -5871,7 +6067,7 @@
 
       // Navy front kick-plate (base plinth cover): hides anchor bolts / cable entry and protects the lower cover from boots
       const kickPlate = regMesh(
-        new THREE.Mesh(new THREE.BoxGeometry(W - 0.04, 0.070, 0.012), new THREE.MeshStandardMaterial({ color: 0x2f4a6b, roughness: 0.55, metalness: 0.20 })),
+        new THREE.Mesh(new THREE.BoxGeometry(W - 0.04, 0.070, 0.012), MAT.navyBase),
         'SK', cubId
       );
       kickPlate.position.set(0, 0.040, 0.566);
@@ -5894,6 +6090,9 @@
         const wall = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.012, 2.09, 1.16), MAT.steelPanel), 'CF', cubId, { isOuterXray: true });
         wall.position.set(wx, 1.12, -0.04);
         subGroups.CF.add(wall);
+        // Bolted side sheet: perimeter screw row on the outer face (reference: densely fastened side skins)
+        const sgn = Math.sign(wx);
+        addFasteners(subGroups.CF, 'CF', cubId, rectPoints(-0.585, 0.505, 0.11, 2.13, 0.16, 'zy', wx + sgn * 0.006), { axis: 'x', dir: sgn, r: 0.0045, h: 0.0034 });
         // Stiffening ribs & ventilation louvers
         [0.65, 1.35, 1.85].forEach((ry) => {
           const rib = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.016, 0.96), MAT.steelTrim), 'CF', cubId, { isOuterXray: true });
@@ -5925,6 +6124,7 @@
       const canopyLip = regMesh(new THREE.Mesh(new THREE.BoxGeometry(W - 0.008, 0.030, 0.042), MAT.steelTrim), 'AR', cubId);
       canopyLip.position.set(0, 2.186, 0.564);
       subGroups.AR.add(roofPlate, canopyLip);
+      addFasteners(subGroups.AR, 'AR', cubId, rectPoints(-0.37, 0.37, -0.60, 0.50, 0.12, 'xz', 2.199), { axis: 'y', r: 0.0045, h: 0.0034 });
       if (cubId === 'BT-M1') {
         const msbHeader = regMesh(
           new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.026), new THREE.MeshStandardMaterial({ map: SHARED_TEX.headerMSB, roughness: 0.35 })),
@@ -6004,6 +6204,18 @@
       const rgtBezel = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.020, bT - bB, 0.010), MAT.steelTrim), 'FD', cubId);
       rgtBezel.position.set(bR + 0.01, (bB + bT) * 0.5, 0.022);
       doorHingeGroup.add(topBezel, botBezel, lftBezel, rgtBezel);
+      // Bolted window frame (reference: closely spaced screws around the inspection window) + black glazing gasket
+      addFasteners(doorHingeGroup, 'FD', cubId, rectPoints(bL - 0.01, bR + 0.01, bB - 0.01, bT + 0.01, 0.068, 'xy', 0.027), { r: 0.0040, h: 0.0034, mat: MAT.silverContact });
+      [
+        [(bL + bR) / 2, bT - 0.004, bR - bL, 0.008], [(bL + bR) / 2, bB + 0.004, bR - bL, 0.008],
+        [bL + 0.004, (bB + bT) / 2, 0.008, bT - bB], [bR - 0.004, (bB + bT) / 2, 0.008, bT - bB]
+      ].forEach(([gx, gy, gw, gh]) => {
+        const gasket = regMesh(new THREE.Mesh(new THREE.BoxGeometry(gw, gh, 0.008), MAT.gasket), 'FD', cubId, { castShadow: false });
+        gasket.position.set(gx, gy, 0.012);
+        doorHingeGroup.add(gasket);
+      });
+      // Door corner fixing screws
+      addFasteners(doorHingeGroup, 'FD', cubId, [[0.03, -dH / 2 + 0.03, 0.021], [dW - 0.03, -dH / 2 + 0.03, 0.021], [0.03, dH / 2 - 0.03, 0.021], [dW - 0.03, dH / 2 - 0.03, 0.021]], { r: 0.0050, mat: MAT.silverContact });
 
       const glassPane = new THREE.Mesh(new THREE.PlaneGeometry(bR - bL, bT - bB), MAT.windowGlass);
       glassPane.position.set((bL + bR) * 0.5, (bB + bT) * 0.5, 0.010);
@@ -6029,7 +6241,7 @@
       lowerDoor.position.set(0, 0.27, 0.556);
       subGroups.FD.add(lowerDoor);
       for (let ly = 0.15; ly <= 0.25; ly += 0.032) {
-        const louver = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.012, 0.010), MAT.steelTrim), 'FD', cubId);
+        const louver = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.012, 0.010), MAT.louverBlack), 'FD', cubId);
         louver.position.set(0, ly, 0.566);
         louver.rotation.x = 0.35;
         subGroups.FD.add(louver);
@@ -6048,12 +6260,12 @@
       ventOpening.position.set(0, 0.20, 0.5646);
       subGroups.FD.add(ventOpening);
       [0.27, 0.13].forEach((vy) => {
-        const vbar = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.012, 0.006), MAT.steelTrim), 'FD', cubId, { castShadow: false });
+        const vbar = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.012, 0.006), MAT.louverBlack), 'FD', cubId, { castShadow: false });
         vbar.position.set(0, vy, 0.5655);
         subGroups.FD.add(vbar);
       });
       [-0.206, 0.206].forEach((vx) => {
-        const vbar = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.14, 0.006), MAT.steelTrim), 'FD', cubId, { castShadow: false });
+        const vbar = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.14, 0.006), MAT.louverBlack), 'FD', cubId, { castShadow: false });
         vbar.position.set(vx, 0.20, 0.5655);
         subGroups.FD.add(vbar);
       });
@@ -6087,6 +6299,7 @@
       const lvDoor = regMesh(new THREE.Mesh(new THREE.BoxGeometry(dW, 0.64, 0.020), MAT.steelLight), 'LD', cubId);
       lvDoor.position.set(0, 1.84, 0.562);
       subGroups.LD.add(lvDoor);
+      addFasteners(subGroups.LD, 'LD', cubId, [[-0.36, 2.115, 0.572], [0.36, 2.115, 0.572], [-0.36, 1.545, 0.572], [0.36, 1.545, 0.572]], { r: 0.0048, mat: MAT.silverContact });
 
       const bayTopStrip = regMesh(
         new THREE.Mesh(new THREE.BoxGeometry(dW, 0.022, 0.008), new THREE.MeshStandardMaterial({ color: bayAccentHex, roughness: 0.35, metalness: 0.15 })),
@@ -6708,6 +6921,10 @@
         subGroups.EP.add(barrier, barrierEdge);
       });
 
+      const poleShedGeo = new THREE.LatheGeometry(
+        [[0.066, -0.009], [0.080, -0.006], [0.089, -0.002], [0.0905, 0.0], [0.089, 0.002], [0.080, 0.004], [0.066, 0.007]].map(([r, y]) => new THREE.Vector2(r, y)),
+        48, Math.PI * 0.27, Math.PI * 1.46
+      );
       [-0.19, 0.0, 0.19].forEach((px, pIdx) => {
         // 12 · EP: Cast Cycloaliphatic Epoxy Pole Housing (210-deg cutaway) + 5 Sheds + Finned Terminal Blocks + Insulating Push-Rod
         const poleShell = regMesh(
@@ -6745,9 +6962,11 @@
         subGroups.EP.add(phaseCollar);
 
         [0.86, 0.94, 1.02, 1.10, 1.18].forEach((ry) => {
-          const shed = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.073, 0.0065, 8, 22, Math.PI * 1.46), MAT.epoxyPole), 'EP', cubId);
-          shed.rotation.x = Math.PI / 2;
-          shed.rotation.z = Math.PI * 0.27;
+          // Moulded creepage shed: tapered fin following the same 210-degree cutaway as the pole barrel
+          const shed = regMesh(new THREE.Mesh(poleShedGeo, MAT.epoxyPole), 'EP', cubId);
+          shed.material.side = THREE.DoubleSide;
+          shed.userData.ghostMaterial.side = THREE.DoubleSide;
+          shed.userData.xrayMaterial.side = THREE.DoubleSide;
           shed.position.set(px, ry, 0.10);
           subGroups.EP.add(shed);
         });
@@ -7088,6 +7307,8 @@
         const splice = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.058, 0.038), MAT.brass), 'BB', cubId);
         splice.position.set(0.36, by, -0.34);
         subGroups.BB.add(sleeve, splice);
+        addFasteners(subGroups.BB, 'BB', cubId, [[0.335, by, -0.321], [0.385, by, -0.321]], { hex: true, r: 0.0068, h: 0.0052, mat: MAT.galvSteel });
+        addFasteners(subGroups.BB, 'BB', cubId, [[0.335, by, -0.359], [0.385, by, -0.359]], { hex: true, dir: -1, r: 0.0068, h: 0.0052, mat: MAT.galvSteel });
 
         const standoff = buildSheddedInsulator(0.034, 0.12, 4, MAT.epoxyPole, 'BB', cubId);
         standoff.rotation.x = Math.PI / 2;
@@ -7105,6 +7326,7 @@
       const rearUpperCover = regMesh(new THREE.Mesh(new THREE.BoxGeometry(W - 0.02, 0.96, 0.014), MAT.steelPanel), 'BB', cubId, { isOuterXray: true });
       rearUpperCover.position.set(0, 1.68, -0.635);
       subGroups.BB.add(rearUpperCover);
+      addFasteners(subGroups.BB, 'BB', cubId, rectPoints(-0.36, 0.36, 1.23, 2.13, 0.15, 'xy', -0.642), { dir: -1, r: 0.0045, h: 0.0034 });
 
       /* 19 · CT: TOROIDAL PROTECTION CTs, CBCT, ZnO ARRESTERS, STRESS CONES & XLPE */
       [-0.19, 0.0, 0.19].forEach((px, idx) => {
@@ -7126,10 +7348,26 @@
         subGroups.CT.add(zno);
 
         // XLPE Stress-Relief Cone + Phase Sleeve + Cable Tail + Brass Gland
-        const cone = regMesh(new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.085, 14), MAT.stressCone), 'CT', cubId);
-        cone.position.set(px, 0.39, -0.25);
-        const pCollar = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.04, 12), phaseMats[idx]), 'CT', cubId);
-        pCollar.position.set(px, 0.33, -0.25);
+        // Shedded cable-termination boot (reference: glossy brown moulded terminations on each phase)
+        const cone = regMesh(new THREE.Mesh(terminationGeo, MAT.stressCone), 'CT', cubId);
+        cone.position.set(px, 0.40, -0.25);
+        // Crimped copper cable lug: barrel + palm bolted to the lower dropper
+        const lugBarrel = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.03, 20), MAT.copper), 'CT', cubId);
+        lugBarrel.position.set(px, 0.494, -0.25);
+        const lugPalm = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.036, 0.05, 0.008), MAT.copper), 'CT', cubId);
+        lugPalm.position.set(px, 0.53, -0.236);
+        subGroups.CT.add(lugBarrel, lugPalm);
+        addFasteners(subGroups.CT, 'CT', cubId, [[px, 0.535, -0.232]], { hex: true, r: 0.0065, h: 0.005 });
+        // Phase identification tapes (red / yellow / blue) on the cable sheath
+        const pCollar = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0262, 0.0262, 0.03, 24), phaseMats[idx]), 'CT', cubId);
+        pCollar.position.set(px, 0.298, -0.25);
+        const pBand2 = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0265, 0.0265, 0.022, 24), phaseMats[idx]), 'CT', cubId);
+        pBand2.position.set(px, 0.115, -0.25);
+        subGroups.CT.add(pBand2);
+        // Cable screen earth lead (green/yellow) to the compartment earth bar
+        addEarthLead(subGroups.CT, 'CT', cubId, [
+          [px + 0.022, 0.31, -0.255], [px + 0.04, 0.26, -0.30], [px * 0.7 + 0.03, 0.14, -0.38], [px * 0.7 + 0.03, 0.095, -0.405]
+        ], 0.0042);
         const cable = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.026, 0.28, 14), MAT.xlpeCable), 'CT', cubId);
         cable.position.set(px, 0.19, -0.25);
         const gland = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.033, 0.033, 0.042, 6), MAT.brass), 'CT', cubId);
@@ -7144,9 +7382,38 @@
       cbct.rotation.x = Math.PI / 2;
       cbct.scale.set(1.0, 0.38, 1.0);
       cbct.position.set(0, 0.16, -0.25);
+      // Cable-screen earth bar on insulated stand-offs
+      const cableEarthBar = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.012, 0.03), MAT.copper), 'CT', cubId);
+      cableEarthBar.position.set(0, 0.088, -0.41);
+      subGroups.CT.add(cableEarthBar);
+      addFasteners(subGroups.CT, 'CT', cubId, [-0.133, -0.003, 0.163].map((x) => [x, 0.094, -0.41]), { axis: 'y', hex: true, r: 0.006, h: 0.0045 });
+      [-0.21, 0.21].forEach((sx) => {
+        const so = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.013, 0.05, 20), MAT.epoxyPole), 'CT', cubId);
+        so.position.set(sx, 0.057, -0.41);
+        subGroups.CT.add(so);
+      });
+      // Unistrut cable-cleat rail with moulded cleats around each cable
+      const cleatRail = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.036, 0.02), MAT.galvSteel), 'CT', cubId);
+      cleatRail.position.set(0, 0.235, -0.287);
+      subGroups.CT.add(cleatRail);
+      [-0.19, 0.0, 0.19].forEach((cx) => {
+        const cleat = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.029, 0.0065, 10, 32, Math.PI), MAT.gasket), 'CT', cubId);
+        cleat.rotation.x = Math.PI / 2;
+        cleat.rotation.z = Math.PI;
+        cleat.position.set(cx, 0.235, -0.27);
+        subGroups.CT.add(cleat);
+        addFasteners(subGroups.CT, 'CT', cubId, [[cx - 0.036, 0.235, -0.277], [cx + 0.036, 0.235, -0.277]], { hex: true, r: 0.005, h: 0.004 });
+      });
+      // Galvanised gland plate the cables pass through
+      const glandPlate = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.008, 0.26), MAT.galvSteel), 'CT', cubId);
+      glandPlate.position.set(0, 0.030, -0.25);
+      subGroups.CT.add(glandPlate);
+      addFasteners(subGroups.CT, 'CT', cubId, rectPoints(-0.30, 0.30, -0.36, -0.14, 0.15, 'xz', 0.034), { axis: 'y', r: 0.0042, h: 0.003 });
+
       const rearLowerCover = regMesh(new THREE.Mesh(new THREE.BoxGeometry(W - 0.02, 1.08, 0.014), MAT.steelPanel), 'CT', cubId, { isOuterXray: true });
       rearLowerCover.position.set(0, 0.62, -0.635);
       subGroups.CT.add(znoBar, cbct, rearLowerCover);
+      addFasteners(subGroups.CT, 'CT', cubId, rectPoints(-0.36, 0.36, 0.11, 1.13, 0.17, 'xy', -0.642), { dir: -1, r: 0.0045, h: 0.0034 });
 
       // Dashed CAD Explosion Guide Lines for all 19 Sub-Assemblies
       const bayGuides = [];
@@ -7247,7 +7514,7 @@
         subGroups.SK.add(pad, bolt);
       });
       const lvKickPlate = regMesh(
-        new THREE.Mesh(new THREE.BoxGeometry(W - 0.04, 0.068, 0.012), new THREE.MeshStandardMaterial({ color: 0x2f4a6b, roughness: 0.55, metalness: 0.20 })),
+        new THREE.Mesh(new THREE.BoxGeometry(W - 0.04, 0.068, 0.012), MAT.navyBase),
         'SK', cubId
       );
       lvKickPlate.position.set(0, 0.040, 0.502);
@@ -7258,6 +7525,8 @@
         const wall = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.012, 1.98, 1.00), MAT.steelPanel), 'CF', cubId, { isOuterXray: true });
         wall.position.set(wx, 1.05, 0);
         subGroups.CF.add(wall);
+        const sgn = Math.sign(wx);
+        addFasteners(subGroups.CF, 'CF', cubId, rectPoints(-0.46, 0.46, 0.12, 1.98, 0.16, 'zy', wx + sgn * 0.006), { axis: 'x', dir: sgn, r: 0.0045, h: 0.0034 });
       });
       [0.48, 1.44].forEach((dy) => {
         const deck = regMesh(new THREE.Mesh(new THREE.BoxGeometry(W - 0.03, 0.016, 0.96), MAT.galvSteel), 'CF', cubId);
@@ -7276,6 +7545,7 @@
       );
       lvHeader.position.set(0, 2.046, 0.523);
       subGroups.AR.add(roof, lvCanopyLip, lvHeader);
+      addFasteners(subGroups.AR, 'AR', cubId, rectPoints(-0.35, 0.35, -0.46, 0.46, 0.12, 'xz', 2.06), { axis: 'y', r: 0.0045, h: 0.0034 });
       [-0.30, 0.30].forEach((ex) => {
         const eye = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.020, 0.005, 10, 18), MAT.brass), 'AR', cubId);
         eye.position.set(ex, 2.085, 0.34);
@@ -7305,8 +7575,32 @@
       const lvVentOpening = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.12), new THREE.MeshStandardMaterial({ color: 0x1d242b, roughness: 0.8 })), 'FD', cubId, { castShadow: false });
       lvVentOpening.position.set(0, 0.22, 0.499);
       subGroups.FD.add(lvFrontDoor, lowPanel, lvVentOpening);
+      {
+        const hL = -0.22, hR = 0.22, hB = 0.76, hT = 1.24, zf = 0.512;
+        [
+          [0, hT + 0.01, hR - hL + 0.04, 0.02], [0, hB - 0.01, hR - hL + 0.04, 0.02],
+          [hL - 0.01, (hB + hT) / 2, 0.02, hT - hB], [hR + 0.01, (hB + hT) / 2, 0.02, hT - hB]
+        ].forEach(([bx, by, bw, bh]) => {
+          const bar = regMesh(new THREE.Mesh(new THREE.BoxGeometry(bw, bh, 0.008), MAT.steelTrim), 'FD', cubId);
+          bar.position.set(bx, by, zf);
+          subGroups.FD.add(bar);
+        });
+        addFasteners(subGroups.FD, 'FD', cubId, rectPoints(hL - 0.01, hR + 0.01, hB - 0.01, hT + 0.01, 0.07, 'xy', zf + 0.004), { r: 0.0040, h: 0.0034, mat: MAT.silverContact });
+        [[-0.365, 0.66], [-0.365, 0.96], [-0.365, 1.26]].forEach(([hx, hy]) => {
+          const hinge = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.052, 16), MAT.darkConsole), 'FD', cubId);
+          hinge.position.set(hx, hy, 0.505);
+          subGroups.FD.add(hinge);
+        });
+        const handleEsc = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.17, 0.012), MAT.darkConsole), 'FD', cubId);
+        handleEsc.position.set(0.31, 0.96, 0.513);
+        const handleLever = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.12, 0.022), MAT.louverBlack), 'FD', cubId);
+        handleLever.position.set(0.31, 0.955, 0.525);
+        subGroups.FD.add(handleEsc, handleLever);
+        addFasteners(subGroups.FD, 'FD', cubId, [[-0.335, 0.53, 0.508], [0.335, 0.53, 0.508], [-0.335, 1.39, 0.508], [0.335, 1.39, 0.508]], { r: 0.0050, mat: MAT.silverContact });
+        addFasteners(subGroups.FD, 'FD', cubId, [[-0.33, 0.44, 0.498], [0.33, 0.44, 0.498], [-0.33, 0.10, 0.498], [0.33, 0.10, 0.498]], { r: 0.0060, mat: MAT.silverContact });
+      }
       for (let ly = 0.17; ly <= 0.27; ly += 0.032) {
-        const louver = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.011, 0.009), MAT.steelTrim), 'FD', cubId);
+        const louver = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.011, 0.009), MAT.louverBlack), 'FD', cubId);
         louver.position.set(0, ly, 0.501);
         louver.rotation.x = 0.35;
         subGroups.FD.add(louver);
@@ -7321,6 +7615,7 @@
       const nameMesh = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.095), new THREE.MeshStandardMaterial({ map: nameTex, roughness: 0.35 })), 'LD', cubId, { castShadow: false });
       nameMesh.position.set(-0.17, 1.93, 0.506);
       subGroups.LD.add(upperDoor, strip, nameMesh);
+      addFasteners(subGroups.LD, 'LD', cubId, [[-0.345, 1.985, 0.504], [0.345, 1.985, 0.504], [-0.345, 1.475, 0.504], [0.345, 1.475, 0.504]], { r: 0.0048, mat: MAT.silverContact });
 
       const needleA = addLiveMeter(subGroups.LD, cubId, 0.075, 1.92, SHARED_TEX.lvAmp, 0.096, 0.516);
       const needleV = addLiveMeter(subGroups.LD, cubId, 0.220, 1.92, SHARED_TEX.lvVolt, 0.096, 0.516);
@@ -7350,16 +7645,28 @@
       const acbCradle = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.49, 0.036, 0.34), MAT.skidSteel), 'TC', cubId);
       acbCradle.position.set(0, 0.63, 0.25);
       subGroups.TC.add(acbBody, acbCradle);
+      // Moulded-case ribs on both sides of the ACB body and a darker front frame
+      [-0.232, 0.232].forEach((rx) => {
+        const ribs = [];
+        for (let ry = 0.69; ry <= 1.04; ry += 0.035) ribs.push([rx, ry, 0.25]);
+        addBoxRun(subGroups.TC, 'TC', cubId, [0.008, 0.012, 0.27], ribs, MAT.iedCase);
+      });
+      const acbFrontFrame = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.47, 0.45, 0.016), MAT.iedCase), 'TC', cubId);
+      acbFrontFrame.position.set(0, 0.86, 0.405);
+      subGroups.TC.add(acbFrontFrame);
       [-0.238, 0.238].forEach((cx) => {
         const railFlange = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.40, 0.32), MAT.galvSteel), 'TC', cubId);
         railFlange.position.set(cx, 0.86, 0.25);
         subGroups.TC.add(railFlange);
       });
       [-0.14, 0.0, 0.14].forEach((ax) => {
-        const chute = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.22), MAT.epoxyPole), 'EP', cubId);
+        const chute = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.22), MAT.iedCase), 'EP', cubId);
         chute.position.set(ax, 1.18, 0.24);
         const exhaustGrid = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.092, 0.012, 0.20), MAT.bronzeMesh), 'EP', cubId);
         exhaustGrid.position.set(ax, 1.254, 0.24);
+        const slots = [];
+        for (let sz = -0.08; sz <= 0.081; sz += 0.02) slots.push([ax, 1.2615, 0.24 + sz]);
+        addBoxRun(subGroups.EP, 'EP', cubId, [0.07, 0.004, 0.006], slots, MAT.louverBlack);
         for (let p = -3; p <= 3; p++) {
           const splitter = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.088, 0.09, 0.006), MAT.galvSteel), 'VI', cubId);
           splitter.position.set(ax, 1.21, 0.24 + p * 0.024);
@@ -7386,6 +7693,34 @@
       const acbChargeLever = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.15, 0.022), MAT.shutterYellow), 'MF', cubId);
       acbChargeLever.position.set(0.12, 1.02, 0.465);
       subGroups.MF.add(acbEsc, acbBezel, acbTripScreen, acbBtnClose, acbBtnOpen, acbFlag, acbChargeLever);
+      {
+        // Electronic trip-unit LCD (red readout, as in the reference C5 fascia) and engraved rating label
+        const lcd = makeCanvasTex(256, 96);
+        lcd.ctx.fillStyle = '#2a0b09'; lcd.ctx.fillRect(0, 0, 256, 96);
+        lcd.ctx.fillStyle = '#ff4a36'; lcd.ctx.font = '700 46px Consolas, monospace'; lcd.ctx.textAlign = 'center'; lcd.ctx.textBaseline = 'middle';
+        lcd.ctx.fillText('2500 A', 128, 50);
+        const lcdMesh = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.09, 0.034), new THREE.MeshStandardMaterial({ map: lcd.tex, emissive: 0xffffff, emissiveMap: lcd.tex, emissiveIntensity: 0.55, roughness: 0.25 })), 'MF', cubId, { castShadow: false });
+        lcdMesh.position.set(-0.10, 0.995, 0.4656);
+        const lbl = makeCanvasTex(512, 96);
+        lbl.ctx.fillStyle = '#c9cdcf'; lbl.ctx.fillRect(0, 0, 512, 96);
+        lbl.ctx.strokeStyle = '#59656b'; lbl.ctx.lineWidth = 3; lbl.ctx.strokeRect(4, 4, 504, 88);
+        lbl.ctx.fillStyle = '#1f2a30'; lbl.ctx.font = '700 34px Segoe UI, Arial'; lbl.ctx.fillText('ACB  440 V  3P  2500 A', 22, 44);
+        lbl.ctx.font = '22px Segoe UI, Arial'; lbl.ctx.fillText('WITHDRAWABLE  ·  ILLUSTRATIVE RATING', 22, 76);
+        const lblMesh = regMesh(new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.041), new THREE.MeshStandardMaterial({ map: lbl.tex, roughness: 0.45, metalness: 0.2 })), 'MF', cubId, { castShadow: false });
+        lblMesh.position.set(-0.02, 0.81, 0.4605);
+        subGroups.MF.add(lcdMesh, lblMesh);
+        addFasteners(subGroups.MF, 'MF', cubId, rectPoints(-0.18, 0.18, 0.79, 1.17, 0.19, 'xy', 0.460), { r: 0.0045, h: 0.0034, mat: MAT.silverContact });
+        // Racking-handle slot and side lifting lugs on the ACB body
+        const rackSlot = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.016, 0.006), MAT.louverBlack), 'MF', cubId, { castShadow: false });
+        rackSlot.position.set(0.10, 0.80, 0.4625);
+        subGroups.MF.add(rackSlot);
+        [-0.235, 0.235].forEach((lx) => {
+          const lug = regMesh(new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.0045, 10, 28), MAT.silverContact), 'TC', cubId);
+          lug.rotation.y = Math.PI / 2;
+          lug.position.set(lx + Math.sign(lx) * 0.012, 1.06, 0.25);
+          subGroups.TC.add(lug);
+        });
+      }
 
       const acbPadlock = buildPadlock3D('MF', cubId);
       acbPadlock.position.set(-0.10, 0.86, 0.468);
@@ -7402,6 +7737,41 @@
         bar.position.set(0, by, -0.28);
         subGroups.BB.add(bar);
       });
+      // ACB rear terminals: horizontal copper spreads (upper = line side, lower = load side)
+      const lvPhaseMats = [MAT.phaseL1, MAT.phaseL2, MAT.phaseL3];
+      [-0.14, 0.0, 0.14].forEach((tx, i) => {
+        [1.00, 0.72].forEach((ty) => {
+          const spread = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.016, 0.17), MAT.copper), 'SP', cubId);
+          spread.position.set(tx, ty, 0.02);
+          subGroups.SP.add(spread);
+          addFasteners(subGroups.SP, 'SP', cubId, [[tx - 0.015, ty + 0.008, -0.03], [tx + 0.015, ty + 0.008, -0.03]], { axis: 'y', hex: true, r: 0.0055, h: 0.0042 });
+        });
+        // Line-side riser up to its phase busbar, with phase sleeve
+        const barY = [1.54, 1.66, 1.78][i];
+        const riser = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.04, barY - 1.0, 0.012), MAT.copper), 'BB', cubId);
+        riser.position.set(tx, (barY + 1.0) / 2, -0.064);
+        const link = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 0.21), MAT.copper), 'BB', cubId);
+        link.position.set(tx, barY, -0.17);
+        const sleeve = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.046, 0.06, 0.018), lvPhaseMats[i]), 'BB', cubId);
+        sleeve.position.set(tx, 1.28, -0.064);
+        subGroups.BB.add(riser, link, sleeve);
+        addFasteners(subGroups.BB, 'BB', cubId, [[tx, barY, -0.272]], { dir: -1, hex: true, r: 0.0065, h: 0.005 });
+        // Load-side outgoing cable with lug, phase tapes and gland
+        const cable = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.64, 28), MAT.xlpeCable), 'CT', cubId);
+        cable.position.set(tx, 0.37, -0.075);
+        const lug = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.04, 20), MAT.copper), 'CT', cubId);
+        lug.position.set(tx, 0.70, -0.075);
+        const tape = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.0215, 0.0215, 0.03, 28), lvPhaseMats[i]), 'CT', cubId);
+        tape.position.set(tx, 0.62, -0.075);
+        const gland = regMesh(new THREE.Mesh(new THREE.CylinderGeometry(0.029, 0.029, 0.034, 6), MAT.brass), 'CT', cubId);
+        gland.position.set(tx, 0.05, -0.075);
+        subGroups.CT.add(cable, lug, tape, gland);
+      });
+      const lvGlandPlate = regMesh(new THREE.Mesh(new THREE.BoxGeometry(0.60, 0.008, 0.22), MAT.galvSteel), 'CT', cubId);
+      lvGlandPlate.position.set(0, 0.03, -0.08);
+      subGroups.CT.add(lvGlandPlate);
+      addEarthLead(subGroups.CT, 'CT', cubId, [[-0.25, 0.04, -0.17], [-0.26, 0.30, -0.20], [-0.24, 0.62, -0.12], [-0.20, 0.72, -0.05]], 0.0055);
+
       const rearCover = regMesh(new THREE.Mesh(new THREE.BoxGeometry(W - 0.02, 0.90, 0.014), MAT.steelPanel), 'BB', cubId, { isOuterXray: true });
       rearCover.position.set(0, 1.56, -0.495);
       subGroups.BB.add(rearCover);
@@ -7537,15 +7907,20 @@
     }
 
     function updateMaterialIsolationAndXray() {
+      // X-ray is an inspection mode: drop key-light shadows so enclosed busbar/cable compartments stay readable
+      keyLight.castShadow = !cadState.xray;
       allRegisteredMeshes.forEach((mesh) => {
         const pk = mesh.userData.partKey;
         const isSelectedPart = (cadState.isolatedPart === 'all' || cadState.isolatedPart === pk);
         if (!isSelectedPart) {
           mesh.material = mesh.userData.ghostMaterial;
+          mesh.castShadow = false;
         } else if (cadState.xray && mesh.userData.isOuterXray && cadState.isolatedPart === 'all') {
           mesh.material = mesh.userData.xrayMaterial;
+          mesh.castShadow = false;
         } else {
           mesh.material = mesh.userData.origMaterial;
+          mesh.castShadow = mesh.userData.baseCastShadow;
         }
       });
 
