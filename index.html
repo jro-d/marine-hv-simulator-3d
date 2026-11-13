@@ -1048,6 +1048,233 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
       .state-flag, .chip, .part-chip, .cub-pill, .btn, .tel, .bus-card { border: 1px solid CanvasText; }
       .chip.active, .part-chip.active, .cub-pill.active, .segmented-tab.active { outline: 2px solid Highlight; }
     }
+    /* ==========================================================================
+       SHELL — slim top bar, command rail + drawers, full-bleed stage with
+       floating clusters, operator column (design-system/docs/brief-and-layout.md)
+       ========================================================================== */
+    .topbar.ws-top { height: var(--topbar-h); padding: 0 16px; gap: 12px; display: flex; align-items: center; position: relative; z-index: 25; background: var(--surface); border-bottom: 1px solid var(--line-strong); }
+    .topbar::after { content: none; }
+    .ws-top .divider { width: 1px; height: 28px; background: var(--line-strong); flex: none; }
+    .ws-top .spacer { flex: 1; }
+    .brand h1.brand-name { font: 600 16px/20px var(--font-sans); white-space: nowrap; }
+    .brand h1.brand-name small { display: block; font: 400 13px/16px var(--font-sans); color: var(--text-3); }
+    .mission-chip { min-width: 0; max-width: 520px; color: var(--text); }
+    .mission-chip:hover { background: var(--surface-2); }
+    #bottomStatusScenario { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    #bottomStatusScenario strong { font: 700 14px/18px var(--font-mono); color: var(--accent-ink); }
+    .plant-chip { cursor: pointer; }
+    .plant-chip:hover { background: var(--surface-2); }
+    .plant-chip .seg { font: 600 13px/16px var(--font-sans); }
+    .mode-switch { cursor: pointer; padding: 3px; }
+    .mode-switch .segmented-tab { min-height: 28px; padding: 0 12px; pointer-events: none; }
+    .mode-switch .segmented-tab[data-mode="exam"].active { box-shadow: var(--shadow-1), inset 0 -2px 0 var(--text); }
+
+    /* Popovers: anchored to their invoker where CSS anchor positioning exists */
+    .popover[popover] { margin: 0; inset: auto; position: fixed; max-height: min(80vh, 640px); overflow-y: auto; }
+    .mission-chip { anchor-name: --mission-chip; }
+    .plant-chip { anchor-name: --plant-chip; }
+    [popovertarget="moreMenu"] { anchor-name: --more-btn; }
+    [popovertarget="camMenu"] { anchor-name: --cam-btn; }
+    [popovertarget="explodeMenu"] { anchor-name: --explode-btn; }
+    @supports (position-area: block-end) {
+      #missionMenu { position-anchor: --mission-chip; position-area: block-end span-inline-end; margin-top: 6px; }
+      #plantMenu { position-anchor: --plant-chip; position-area: block-end span-inline-start; margin-top: 6px; }
+      #moreMenu { position-anchor: --more-btn; position-area: block-end span-inline-start; margin-top: 6px; }
+      #camMenu, #explodeMenu { position-area: inline-end span-block-end; margin-left: 8px; position-try-fallbacks: flip-block; }
+      #camMenu { position-anchor: --cam-btn; }
+      #explodeMenu { position-anchor: --explode-btn; }
+    }
+    @supports not (position-area: block-end) {
+      #missionMenu { top: 60px; left: 300px; }
+      #plantMenu, #moreMenu { top: 60px; right: 16px; }
+      #camMenu, #explodeMenu { top: 140px; left: 280px; }
+    }
+    .mission-menu { width: 460px; }
+    .mission-menu .scenario-list { padding: 0; border: 0; gap: 2px; }
+    .mission-menu .scenario-btn { min-height: 44px; font: 500 15px/20px var(--font-sans); }
+    .plant-menu { width: 300px; }
+    .plant-menu .top-telemetry { display: grid; gap: 6px; padding: 0; border: 0; overflow: visible; }
+    .more-menu { width: 280px; padding: 6px; }
+    .menu-label { display: block; padding: 6px 10px 2px; }
+    .menu-danger { color: var(--live-ink); }
+    .more-menu .rail-sep { display: block; }
+    .cam-menu { min-width: 220px; display: none; flex-direction: column; gap: 4px; }
+    .cam-menu:popover-open { display: flex; }
+    .cam-menu .chip { justify-content: flex-start; width: 100%; }
+    .explode-menu { width: 440px; }
+    .explode-menu .cad-slider { flex: 1; inline-size: auto; }
+
+    /* Plant chip dots mirror the telemetry tiles (shape + colour, as the tiles) */
+    .plant-chip .tel-dot { background: var(--dead); }
+    body:has(#telBus[data-state="live"]) .plant-chip [data-tel="telBus"] .tel-dot,
+    body:has(#telGen[data-state="live"]) .plant-chip [data-tel="telGen"] .tel-dot,
+    body:has(#telTie[data-state="live"]) .plant-chip [data-tel="telTie"] .tel-dot,
+    body:has(#telLoad[data-state="live"]) .plant-chip [data-tel="telLoad"] .tel-dot,
+    body:has(#telRules[data-state="live"]) .plant-chip [data-tel="telRules"] .tel-dot { background: var(--live); border-radius: 50%; }
+    body:has(#telBus[data-state="safe"]) .plant-chip [data-tel="telBus"] .tel-dot,
+    body:has(#telGen[data-state="safe"]) .plant-chip [data-tel="telGen"] .tel-dot,
+    body:has(#telTie[data-state="safe"]) .plant-chip [data-tel="telTie"] .tel-dot,
+    body:has(#telLoad[data-state="safe"]) .plant-chip [data-tel="telLoad"] .tel-dot,
+    body:has(#telRules[data-state="safe"]) .plant-chip [data-tel="telRules"] .tel-dot { background: var(--safe); border-radius: 2px; }
+    body:has(#telRules[data-state="warn"]) .plant-chip [data-tel="telRules"] .tel-dot { background: var(--earth); border-radius: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+
+    /* Exam / CoC chrome: ink rule under the top bar, quiet score */
+    body:has(#workspaceGrid.exam-mode) .ws-top { box-shadow: inset 0 -3px 0 var(--text); }
+    body:has(#workspaceGrid.exam-mode) #topScoreBadge { background: transparent; border-color: var(--line-strong); color: var(--text-2); font-weight: 600; }
+
+    /* Workspace: rail | stage. Drawers and the operator column float. */
+    .workspace {
+      display: grid; grid-template-columns: var(--rail-w) minmax(0, 1fr);
+      height: calc(100vh - var(--topbar-h)); min-height: 560px; position: relative; overflow: hidden; transition: none;
+    }
+    .rail { grid-column: 1; grid-row: 1; position: relative; z-index: calc(var(--z-drawer) + 1); overflow-y: auto; }
+    .workspace.left-collapsed .rail-btn.active { background: transparent; color: var(--text-2); font-weight: 500; box-shadow: none; }
+    .workspace:not(.left-collapsed) .rail-btn.active { background: var(--accent-tint); color: var(--accent-ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
+    .left-panel.drawer {
+      position: absolute; left: var(--rail-w); top: 0; bottom: 0; width: var(--drawer-w); max-width: calc(100vw - var(--rail-w));
+      z-index: var(--z-drawer); display: block; overflow-y: auto; opacity: 1; pointer-events: auto;
+      background: var(--panel); border-right: 1px solid var(--line-strong); box-shadow: var(--shadow-3);
+    }
+    .workspace.left-collapsed .left-panel.drawer { display: none; }
+    .drawer-close { position: absolute; top: 12px; right: 12px; z-index: 3; font: 700 16px/1 var(--font-mono); }
+    .left-panel .drawer-head { padding-right: 60px; position: sticky; top: 0; z-index: 2; }
+    .left-panel .drawer-head .ic { color: var(--text-3); }
+    .left-panel .drawer-head .badge-mono { margin-left: auto; }
+    .left-tab-pane { display: block; }
+    .megger-grid { border-color: var(--line-strong); background: var(--line-strong); }
+    .megger-grid > div { padding: 10px 12px; gap: 2px; }
+    .megger-grid span { font: 600 12px/16px var(--font-sans); letter-spacing: 0.04em; color: var(--text-3); }
+    .megger-grid strong { font: 500 22px/28px var(--font-mono); color: var(--test-ink); }
+
+    /* Center stage */
+    .center-viewport { grid-column: 2; grid-row: 1; position: relative; display: block; overflow: hidden; background: var(--stage); min-width: 0; }
+    .stage-3d-wrap { position: absolute; inset: 0; background: var(--stage); }
+    .view-stage { position: absolute; inset: 0; padding: 80px calc(var(--operator-w) + 40px) 120px 24px; overflow-y: auto; }
+    .workspace.right-collapsed .view-stage { padding-right: 24px; }
+    .view-cluster { position: absolute; left: 16px; top: 16px; z-index: var(--z-hud); padding: 6px; gap: 6px; flex-wrap: wrap; justify-content: flex-start; max-width: calc(100% - var(--operator-w) - 64px); border-bottom: 1px solid var(--line-strong); background: var(--surface); }
+    .workspace.right-collapsed .view-cluster { max-width: calc(100% - 32px); }
+    .view-cluster .segmented-tab { min-height: 32px; }
+    .cluster-sep { flex: none; background: var(--line-strong); }
+    .view-cluster .cluster-sep { width: 1px; height: 24px; margin: 0 2px; }
+    .cad-cluster .cluster-sep { height: 1px; margin: 2px 4px; }
+    .cad-toolbar.cad-cluster {
+      position: absolute; left: 16px; top: 84px; z-index: var(--z-hud); width: 196px; padding: 6px;
+      display: flex; flex-direction: column; align-items: stretch; gap: 4px; flex-wrap: nowrap; background: var(--surface); border-bottom: 1px solid var(--line-strong);
+    }
+    .cad-cluster > .chip { justify-content: flex-start; width: 100%; }
+    .cad-cluster .chip .chev, .cad-cluster .chip .chip-val { margin-left: auto; }
+    .chip .chip-val { font: 600 13px/16px var(--font-mono); }
+    .parts-strip.cluster {
+      position: absolute; left: 228px; top: 84px; z-index: var(--z-hud);
+      max-width: calc(100% - var(--operator-w) - 276px); padding: 6px 10px 6px 6px; gap: 10px; flex-wrap: nowrap; background: var(--surface);
+    }
+    .workspace.right-collapsed .parts-strip.cluster { max-width: calc(100% - 260px); }
+    .parts-strip .part-info { font-size: 14px; min-width: 0; }
+    .parts-dropdown-btn { min-height: var(--control-sm); border-color: var(--line-control); font: 600 14px/18px var(--font-sans); border-radius: var(--radius); }
+    .parts-dropdown-badge { font: 600 13px/16px var(--font-mono); color: var(--accent-ink); }
+    .parts-dropdown-menu .cat-legend { padding: 4px 0; font-size: 13px; color: var(--text-2); }
+    .parts-search { display: flex; align-items: center; gap: 8px; min-height: var(--control-sm); padding: 0 10px; border: 1px solid var(--line-control); border-radius: var(--radius); background: var(--surface); color: var(--text-3); }
+    .parts-search:focus-within, .help-search-field:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+    .parts-search input, .help-search-field input { flex: 1; min-width: 0; border: 0; background: transparent; font: 400 14px/18px var(--font-sans); color: var(--text); outline: none; }
+    .part-chip[data-hidden-by-search] { display: none; }
+    .stage-hint { top: auto; left: auto; right: calc(var(--operator-w) + 40px); bottom: 96px; font: 400 13px/16px var(--font-sans); color: var(--text-2); }
+    .workspace.right-collapsed .stage-hint { right: 16px; }
+    .toast-host { top: 76px; z-index: var(--z-toast); }
+    .arc-flash-hud-banner { top: 76px; }
+    .quick-action-hud { bottom: 96px; }
+
+    /* Bus / feeder mimic: state word on every card */
+    .busbar-dock {
+      position: absolute; left: 16px; right: calc(var(--operator-w) + 40px); bottom: 16px; z-index: var(--z-hud);
+      padding: 0; gap: 6px; background: transparent; border: 0;
+    }
+    .workspace.right-collapsed .busbar-dock { right: 16px; }
+    .bus-card { box-shadow: var(--shadow-1); }
+    .bus-card .bus-name::after { content: "DEAD"; font: 700 12px/16px var(--font-mono); color: var(--text-3); margin-left: auto; }
+    .bus-card.live .bus-name::after { content: "LIVE"; color: var(--live-ink); }
+    .bus-card.earthed .bus-name::after { content: "EARTHED"; color: var(--earth-ink); }
+    .bus-card.backfeed .bus-name::after { content: "BACK-FEED"; color: var(--live-ink); }
+    .bottom-status-strip { height: auto; padding: 0; background: transparent; border: 0; justify-content: flex-start; }
+    #bottomStatusEvent { max-width: 100%; padding: 3px 8px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line-strong); font: 500 13px/16px var(--font-mono); color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Operator column */
+    .op-column {
+      position: absolute; right: 16px; top: 16px; bottom: 16px; width: var(--operator-w); z-index: var(--z-hud);
+      display: flex; flex-direction: column; gap: 12px; overflow-y: auto; overscroll-behavior: contain;
+      background: transparent; border: 0; opacity: 1; pointer-events: auto; scrollbar-width: thin;
+    }
+    .workspace.right-collapsed .op-column { display: none; }
+    .op-card { flex: none; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-lg); box-shadow: var(--shadow-2); overflow: hidden; }
+    .op-card-title { margin: 0; flex: 1; display: flex; align-items: center; gap: 8px; font: 600 16px/22px var(--font-sans); }
+    .op-card-title .ic { color: var(--text-3); }
+    .loto-container.op-card { padding: 12px 14px; gap: 8px; }
+    .loto-code { font-size: 14px; color: var(--text-2); }
+    .loto-progress.meter { height: 6px; }
+    .loto-progress > div { background: var(--accent); }
+    .loto-foot { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+    .loto-next { font: 400 14px/20px var(--font-sans); color: var(--text-2); }
+    .bay-op.op-card { width: auto; }
+    .inspector-header.bay-op-head { padding: 12px 14px; background: var(--surface); border-bottom: 1px solid var(--line-strong); box-shadow: inset 0 4px 0 var(--bay, var(--accent)); display: grid; grid-template-columns: auto 1fr auto; }
+    .bay-op-head .bay-op-sub { grid-column: 1 / -1; text-transform: none; letter-spacing: 0; font: 400 14px/18px var(--font-sans); color: var(--text-3); }
+    .bay-op .equipment-meta-grid { border-bottom: 1px solid var(--line); background: var(--line); }
+    .bay-op .meta-box { padding: 8px 14px; }
+    .bay-op .meta-box span { font: 600 12px/16px var(--font-sans); letter-spacing: 0.04em; color: var(--text-3); }
+    .bay-op .meta-box strong { font: 600 15px/20px var(--font-mono); }
+    .bay-about { padding: 10px 14px 12px; border-top: 1px solid var(--line); font-size: 14px; color: var(--text-2); }
+    .bay-about summary { cursor: pointer; font: 600 13px/16px var(--font-sans); letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); }
+    .bay-about p { margin: 8px 0 0; }
+    .bay-std { font-size: 13px; color: var(--text-3); }
+    .center-viewport > #btnCollapseRight { right: calc(var(--operator-w) + 17px); z-index: var(--z-hud); top: 50%; background: var(--surface); }
+    .workspace.right-collapsed .center-viewport > #btnCollapseRight { right: 0; }
+
+    /* Help drawer (replaces the floating tutorial) */
+    .help-float.drawer {
+      position: fixed; left: var(--rail-w); top: var(--topbar-h); bottom: 0; right: auto; width: 460px; max-width: calc(100vw - var(--rail-w));
+      max-height: none; border-radius: 0; border: 0; border-right: 1px solid var(--line-strong); box-shadow: var(--shadow-3); z-index: var(--z-drawer); background: var(--panel);
+    }
+    .help-float-head.drawer-head { cursor: default; box-shadow: none; background: var(--surface); }
+    .help-float-head .ic { color: var(--text-3); }
+    .help-float-head h2 { font: 600 18px/24px var(--font-sans); flex: 1; }
+    .help-search { padding: 12px 16px 0; display: grid; gap: 6px; }
+    .help-search-field { width: 100%; min-height: 40px; cursor: text; }
+    .help-float-tabs.segmented-tabs { margin: 10px 16px 0; padding: 3px; border-bottom: 1px solid var(--line-strong); overflow-x: auto; flex: none; }
+    .help-float .help-tab-btn { padding: 0 12px; border-radius: var(--radius); font: 500 14px/18px var(--font-sans); }
+    .help-float .help-tab-btn.active { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--shadow-1), inset 0 -2px 0 var(--accent); }
+    .help-float-body { font-size: 15px; line-height: 22px; }
+    .help-float [data-search-hidden] { display: none !important; }
+    .help-float mark { background: var(--brass-tint); color: var(--text); border-radius: 2px; }
+    body:has(#helpFloat:not(.hidden)) #btnToggleHelp { background: var(--accent-tint); color: var(--accent-ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
+
+    /* Presentation density: larger type and targets for classroom projection */
+    body.density-presentation { font-size: 17px; }
+    body.density-presentation .btn, body.density-presentation .chip, body.density-presentation .segmented-tab, body.density-presentation .cub-pill { font-size: 16px; }
+    body.density-presentation { --operator-w: 400px; }
+
+    .score-badge { white-space: nowrap; }
+    /* Below ~1700px the view tabs and bay pills take two rows: tools start below them */
+    @media (max-width: 1699px) {
+      .view-cluster { max-width: min(560px, calc(100% - var(--operator-w) - 64px)); }
+      .cad-toolbar.cad-cluster, .parts-strip.cluster { top: 132px; }
+      .toast-host, .arc-flash-hud-banner { top: 132px; }
+      .view-stage { padding-top: 136px; }
+    }
+    /* Narrow shells (1280×720, iPad landscape) */
+    @media (max-width: 1439px) {
+      :root { --operator-w: 330px; --drawer-w: 380px; }
+      .brand-name { display: none; }
+      .plant-chip .seg + .seg { display: none; }
+      .mission-chip { max-width: 300px; }
+      .cad-toolbar.cad-cluster { width: 52px; }
+      .cad-cluster > .chip { padding: 0; justify-content: center; font-size: 0; gap: 0; min-height: 40px; }
+      .cad-cluster > .chip .ic { width: 20px; height: 20px; }
+      .cad-cluster > .chip .chev, .cad-cluster > .chip .chip-val, .cad-cluster > .chip kbd { display: none; }
+      .parts-strip.cluster { left: 84px; }
+      .view-cluster .segmented-tab { padding: 0 10px; }
+    }
+    @media (pointer: coarse) {
+      .rail-btn, .menu-item, .scenario-btn, .tool-item { min-height: var(--control-touch); }
+    }
+
   </style>
 </head>
 <body>
@@ -1117,14 +1344,49 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
   </svg>
 
   <!-- TOP BAR -->
-  <header class="topbar">
+  <header class="topbar ws-top">
     <div class="brand">
       <div class="brand-mark"><svg class="ic"><use href="#i-bolt"/></svg></div>
-      <h1>Marine HV Switchboard Twin <small>6.6 kV · 60 Hz · Switching &amp; Permit-to-Work</small></h1>
+      <h1 class="brand-name">Marine HV Switchboard Twin <small>6.6 kV · 60 Hz · Switching &amp; Permit-to-Work</small></h1>
     </div>
-
-    <div class="top-telemetry">
-      <div class="tel" id="telGen" data-state="live">
+    <span class="divider" aria-hidden="true"></span>
+    <button type="button" class="mission-chip" popovertarget="missionMenu" aria-haspopup="true" title="Choose a mission">
+      <span id="bottomStatusScenario"><strong>Mission 01</strong> · Bow Thruster 6.6 kV Motor Isolation &amp; PTW</span>
+      <svg class="ic ic-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+    </button>
+    <div id="missionMenu" popover="auto" class="popover mission-menu" aria-label="Missions">
+      <div class="popover-head">
+        <strong>Missions</strong>
+        <span class="badge-mono" id="missionCountBadge">01 / 04</span>
+      </div>
+      <nav class="scenario-list">
+          <button type="button" class="scenario-btn active" data-m="1">
+            <span class="scenario-num">01</span><span>Bow Thruster 6.6 kV Motor Isolation &amp; PTW</span>
+          </button>
+          <button type="button" class="scenario-btn" data-m="2">
+            <span class="scenario-num">02</span><span>Transformer Dual-End Isolation (Back-Feed Trap)</span>
+          </button>
+          <button type="button" class="scenario-btn" data-m="3">
+            <span class="scenario-num">03</span><span>Sanction-for-Test &amp; 5 kV Megger / PI Test</span>
+          </button>
+          <button type="button" class="scenario-btn" data-m="4">
+            <span class="scenario-num">04</span><span>De-Isolation &amp; Safe Restoration to Service</span>
+          </button>
+        </nav>
+    </div>
+    <span class="spacer"></span>
+    <button type="button" class="plant-chip" popovertarget="plantMenu" aria-haspopup="true" aria-label="Plant state">
+      <span class="seg" data-tel="telBus"><span class="tel-dot"></span>Bus</span>
+      <span class="seg" data-tel="telGen"><span class="tel-dot"></span>Gen</span>
+      <span class="seg" data-tel="telTie"><span class="tel-dot"></span>BT1</span>
+      <span class="seg" data-tel="telLoad"><span class="tel-dot"></span>Load</span>
+      <span class="seg" data-tel="telRules"><span class="tel-dot"></span>Rules</span>
+      <svg class="ic ic-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+    </button>
+    <div id="plantMenu" popover="auto" class="popover plant-menu" aria-label="Plant state">
+      <div class="popover-head"><strong>Plant state</strong><span class="eyebrow">Live telemetry</span></div>
+      <div class="top-telemetry">
+          <div class="tel" id="telGen" data-state="live">
         <span class="tel-dot"></span>
         <div class="tel-text"><span class="tel-label">Generators</span><strong id="topTelGen">1 / 4 online</strong></div>
       </div>
@@ -1144,67 +1406,62 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
         <span class="tel-dot"></span>
         <div class="tel-text"><span class="tel-label">5 Golden Rules</span><strong id="topTelRules">In progress</strong></div>
       </div>
+      </div>
     </div>
-
-    <div class="top-actions">
-      <div class="score-badge" id="topScoreBadge"><svg class="ic ic-sm"><use href="#i-shield"/></svg><span id="topScoreText">100 / 100</span></div>
-      <button type="button" class="top-btn primary" id="btnToggleHelp"><svg class="ic"><use href="#i-help"/></svg>Tutorial</button>
-      <button type="button" class="top-btn" id="btnToggleMode">Mode: <strong>Training</strong></button>
-      <button type="button" class="top-btn" id="btnOpenManual"><svg class="ic"><use href="#i-book"/></svg>Interlocks</button>
-      <button type="button" class="top-btn" id="btnToggleAudio" aria-label="Toggle sound"><svg class="ic"><use href="#i-sound"/></svg>Sound</button>
-      <button type="button" class="top-btn danger" id="btnResetAll"><svg class="ic"><use href="#i-reset"/></svg>Reset</button>
+    <span class="divider" aria-hidden="true"></span>
+    <button type="button" class="segmented-tabs mode-switch" id="btnToggleMode" aria-label="Mode: Training. Click to switch to Exam / CoC">
+      <span class="segmented-tab active" data-mode="train">Training</span><span class="segmented-tab" data-mode="exam">Exam</span>
+    </button>
+    <div class="score-badge" id="topScoreBadge"><svg class="ic ic-sm"><use href="#i-shield"/></svg><span id="topScoreText">100 / 100</span></div>
+    <button type="button" class="btn btn-quiet btn-icon btn-sm" popovertarget="moreMenu" aria-haspopup="menu" aria-label="More: sound, interlock reference, theme, density, reset"><svg class="ic"><use href="#i-more"/></svg></button>
+    <div id="moreMenu" popover="auto" class="popover more-menu" role="menu" aria-label="More">
+      <button type="button" class="menu-item" role="menuitem" id="btnToggleAudio" aria-label="Toggle sound"><svg class="ic"><use href="#i-sound"/></svg>Sound</button>
+      <button type="button" class="menu-item" role="menuitem" id="btnOpenManual"><svg class="ic"><use href="#i-book"/></svg>Interlock reference</button>
+      <span class="rail-sep"></span>
+      <span class="menu-label eyebrow">Theme</span>
+      <button type="button" class="menu-item" role="menuitemradio" data-theme-set="day" aria-checked="true"><svg class="ic"><use href="#i-eye"/></svg>Day</button>
+      <button type="button" class="menu-item" role="menuitemradio" data-theme-set="night" aria-checked="false"><svg class="ic"><use href="#i-moon"/></svg>Night watch</button>
+      <button type="button" class="menu-item" role="menuitemradio" data-theme-set="projector" aria-checked="false"><svg class="ic"><use href="#i-contrast"/></svg>Projector (high contrast)</button>
+      <button type="button" class="menu-item" role="menuitemcheckbox" id="btnDensity" aria-checked="false"><svg class="ic"><use href="#i-expand"/></svg>Presentation density</button>
+      <span class="rail-sep"></span>
+      <button type="button" class="menu-item menu-danger" role="menuitem" id="btnResetAll"><svg class="ic"><use href="#i-reset"/></svg>Reset mission</button>
     </div>
   </header>
 
-  <main class="workspace workspace-grid" id="workspaceGrid">
-    <!-- LEFT PANEL (Priority #4 Consolidated 2-Tab Layout) -->
-    <aside class="panel left-panel" id="leftPanel">
-      <div class="left-tabs-bar" role="tablist" aria-label="Operator Console Sections">
-        <button type="button" class="left-tab-btn active" id="tabLeftMissionPpe">
-          <span>1. Mission &amp; PPE</span>
-        </button>
-        <button type="button" class="left-tab-btn" id="tabLeftToolsKeys">
-          <span>2. Tools &amp; Megger</span>
-        </button>
-      </div>
+  <main class="workspace workspace-grid left-collapsed" id="workspaceGrid">
+    <!-- COMMAND RAIL: opens one drawer at a time -->
+    <nav class="rail" aria-label="Command rail">
+      <button type="button" class="rail-btn" id="tabLeftToolsKeys" aria-controls="leftPanel" aria-expanded="false"><svg class="ic"><use href="#i-wrench"/></svg>Tools &amp; keys<span class="rail-badge" id="railKeyBadge" hidden></span></button>
+      <button type="button" class="rail-btn" id="tabLeftMissionPpe" aria-controls="leftPanel" aria-expanded="false"><svg class="ic"><use href="#i-shield"/></svg>PPE</button>
+      <button type="button" class="rail-btn" id="railMegger" aria-controls="leftPanel" aria-expanded="false"><svg class="ic"><use href="#i-meter"/></svg>Megger</button>
+      <button type="button" class="rail-btn" id="railParts" aria-controls="partsDropdownMenu"><svg class="ic"><use href="#i-layers"/></svg>Parts</button>
+      <span class="rail-sep"></span>
+      <button type="button" class="rail-btn" id="railPermit" aria-haspopup="dialog"><svg class="ic"><use href="#i-doc"/></svg>Permit</button>
+      <button type="button" class="rail-btn" id="btnToggleHelp" aria-controls="helpFloat" aria-expanded="false"><svg class="ic"><use href="#i-help"/></svg>Help</button>
+    </nav>
+
+    <!-- LEFT DRAWER: PPE pane and Tools & keys pane (one visible at a time) -->
+    <aside class="panel left-panel drawer" id="leftPanel" aria-label="Tools, keys, PPE and Megger">
+      <button type="button" class="btn btn-quiet btn-sm btn-icon drawer-close" id="btnCollapseLeft" title="Close drawer" aria-label="Close drawer">&laquo;</button>
 
       <div class="left-tab-pane active-pane" id="leftPaneMissionPpe">
-        <div class="panel-heading">
-          <h2>Missions</h2>
-          <span class="small-badge" id="missionCountBadge">01 / 04</span>
-        </div>
-
-        <nav class="scenario-list">
-          <button type="button" class="scenario-btn active" data-m="1">
-            <span class="scenario-num">01</span><span>Bow Thruster 6.6 kV Motor Isolation &amp; PTW</span>
-          </button>
-          <button type="button" class="scenario-btn" data-m="2">
-            <span class="scenario-num">02</span><span>Transformer Dual-End Isolation (Back-Feed Trap)</span>
-          </button>
-          <button type="button" class="scenario-btn" data-m="3">
-            <span class="scenario-num">03</span><span>Sanction-for-Test &amp; 5 kV Megger / PI Test</span>
-          </button>
-          <button type="button" class="scenario-btn" data-m="4">
-            <span class="scenario-num">04</span><span>De-Isolation &amp; Safe Restoration to Service</span>
-          </button>
-        </nav>
-
-        <div class="section-box">
-          <div class="section-title-row">
-            <span class="section-title" style="--sec: var(--safe);"><span class="sec-icon"><svg class="ic"><use href="#i-shield"/></svg></span>HV PPE · COSWP Ch. 22</span>
-            <button type="button" class="btn btn-sm btn-primary" id="btnEquipAllPPE">Don all</button>
-          </div>
-          <div class="ppe-row" id="ppeGlovesRow">
+        <div class="drawer-head"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg><h2>HV PPE · COSWP Ch. 22</h2></div>
+        <div class="drawer-body">
+          <div class="group">
+            <div class="group-head"><h3>Locker</h3><button type="button" class="btn btn-sm btn-primary" id="btnEquipAllPPE">Don all</button></div>
+            <div class="ppe-row" id="ppeGlovesRow">
+            <span class="ind-glyph" aria-hidden="true"><svg class="ic"><use href="#i-glove"/></svg></span>
             <div class="ppe-text">
               <span class="ppe-title">Class 2 HV Gloves (17 kV)</span>
               <span class="ppe-sub" id="ppeGlovesSub">Roll air-test required</span>
             </div>
-            <div style="display:flex;gap:4px;">
+            <div class="ppe-actions">
               <button type="button" class="btn btn-sm" id="btnRollTest">Air-test</button>
               <button type="button" class="btn btn-sm" id="btnDonGloves">Don</button>
             </div>
           </div>
           <div class="ppe-row" id="ppeSuitRow">
+            <span class="ind-glyph" aria-hidden="true"><svg class="ic"><use href="#i-suit"/></svg></span>
             <div class="ppe-text">
               <span class="ppe-title">Arc-Flash Suit (40 cal/cm²)</span>
               <span class="ppe-sub" id="ppeSuitSub">Not donned</span>
@@ -1212,133 +1469,109 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
             <button type="button" class="btn btn-sm" id="btnDonSuit">Equip</button>
           </div>
           <div class="ppe-row" id="ppeBootsRow">
+            <span class="ind-glyph" aria-hidden="true"><svg class="ic"><use href="#i-boot"/></svg></span>
             <div class="ppe-text">
               <span class="ppe-title">Dielectric Boots &amp; 15 kV Mat</span>
               <span class="ppe-sub" id="ppeBootsSub">Not deployed</span>
             </div>
             <button type="button" class="btn btn-sm" id="btnDonBoots">Deploy</button>
           </div>
+          </div>
         </div>
       </div>
 
       <div class="left-tab-pane" id="leftPaneToolsKeys" hidden>
-        <div class="section-box">
-          <div class="section-title-row">
-            <span class="section-title" style="--sec: var(--info);"><span class="sec-icon"><svg class="ic"><use href="#i-wrench"/></svg></span>Toolbelt</span>
-            <span class="small-badge" id="currentToolLabel">HAND</span>
+        <div class="drawer-head"><svg class="ic" aria-hidden="true"><use href="#i-wrench"/></svg><h2>Tools &amp; keys</h2><span class="badge-mono" id="currentToolLabel">HAND</span></div>
+        <div class="drawer-body">
+          <div class="group">
+            <div class="group-head"><h3><svg class="ic" aria-hidden="true"><use href="#i-wrench"/></svg>Toolbelt</h3></div>
+            <div class="tool-grid" id="toolbeltGrid">
+            <button type="button" class="tool-item selected" data-t="HAND"><svg class="ic"><use href="#i-hand"/></svg>Hand / operate<kbd>1</kbd></button>
+            <button type="button" class="tool-item" data-t="CRANK"><svg class="ic"><use href="#i-wrench"/></svg>Racking crank<kbd>2</kbd></button>
+            <button type="button" class="tool-item" data-t="EARTH_LEVER"><svg class="ic"><use href="#i-earth"/></svg>Earth lever<kbd>3</kbd></button>
+            <button type="button" class="tool-item" data-t="PADLOCK"><svg class="ic"><use href="#i-lock"/></svg>LOTO padlock<kbd>4</kbd></button>
+            <button type="button" class="tool-item" data-t="TAG_DANGER"><svg class="ic"><use href="#i-tag"/></svg>Danger tag<kbd>5</kbd></button>
+            <button type="button" class="tool-item" data-t="TAG_EARTH"><svg class="ic"><use href="#i-tag"/></svg>Earth tag<kbd>6</kbd></button>
+            <button type="button" class="tool-item" data-t="HV_TESTER"><svg class="ic"><use href="#i-probe"/></svg>6.6 kV wand<kbd>7</kbd></button>
+            <button type="button" class="tool-item" data-t="PORTABLE_EARTH"><svg class="ic"><use href="#i-chain"/></svg>Portable earth<kbd>8</kbd></button>
+            <button type="button" class="tool-item" data-t="MEGGER"><svg class="ic"><use href="#i-meter"/></svg>5 kV Megger<kbd>9</kbd></button>
+            <button type="button" class="tool-item" data-t="TAG_SFT"><svg class="ic"><use href="#i-tag"/></svg>SFT tag<kbd>0</kbd></button>
           </div>
-          <div class="tool-grid" id="toolbeltGrid">
-            <button type="button" class="tool-item selected" data-t="HAND"><svg class="ic"><use href="#i-hand"/></svg>Hand / operate</button>
-            <button type="button" class="tool-item" data-t="CRANK"><svg class="ic"><use href="#i-wrench"/></svg>Racking crank</button>
-            <button type="button" class="tool-item" data-t="EARTH_LEVER"><svg class="ic"><use href="#i-earth"/></svg>Earth lever</button>
-            <button type="button" class="tool-item" data-t="PADLOCK"><svg class="ic"><use href="#i-lock"/></svg>LOTO padlock</button>
-            <button type="button" class="tool-item" data-t="TAG_DANGER"><svg class="ic"><use href="#i-tag"/></svg>Danger tag</button>
-            <button type="button" class="tool-item" data-t="TAG_EARTH"><svg class="ic"><use href="#i-tag"/></svg>Earth tag</button>
-            <button type="button" class="tool-item" data-t="HV_TESTER"><svg class="ic"><use href="#i-probe"/></svg>6.6 kV wand</button>
-            <button type="button" class="tool-item" data-t="PORTABLE_EARTH"><svg class="ic"><use href="#i-chain"/></svg>Portable earth</button>
-            <button type="button" class="tool-item" data-t="MEGGER"><svg class="ic"><use href="#i-meter"/></svg>5 kV Megger</button>
-            <button type="button" class="tool-item" data-t="TAG_SFT"><svg class="ic"><use href="#i-tag"/></svg>SFT tag</button>
           </div>
-        </div>
 
-        <div class="section-box">
-          <div class="section-title-row">
-            <span class="section-title" style="--sec: var(--brass);"><span class="sec-icon"><svg class="ic"><use href="#i-key"/></svg></span>Castell Keys</span>
-            <span class="small-badge" id="keyBoxStatusBadge">Key box open</span>
+          <div class="group">
+            <div class="group-head"><h3><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg>Castell keys</h3><span class="badge-mono" id="keyBoxStatusBadge">Key box open</span></div>
+            <div class="op-row" id="keyChipsContainer"></div>
+            <button type="button" class="btn btn-sm" id="btnToggleKeyBox"><svg class="ic ic-sm"><use href="#i-lock"/></svg>Lock keys in safety key box</button>
           </div>
-          <div style="display:flex;flex-wrap:wrap;gap:5px;" id="keyChipsContainer"></div>
-          <button type="button" class="btn btn-sm" id="btnToggleKeyBox"><svg class="ic ic-sm"><use href="#i-lock"/></svg>Lock keys in safety key box</button>
-        </div>
 
-        <div class="section-box" id="meggerSectionBox">
-          <div class="section-title-row">
-            <span class="section-title" style="--sec: var(--test);"><span class="sec-icon"><svg class="ic"><use href="#i-meter"/></svg></span>5 kV Insulation / PI Tester</span>
-            <span class="small-badge" id="meggerLeadBadge">Leads off</span>
-          </div>
-          <div class="megger-grid">
+          <div class="group" id="meggerSectionBox">
+            <div class="group-head"><h3><svg class="ic" aria-hidden="true"><use href="#i-meter"/></svg>5 kV Insulation / PI Tester</h3><span class="badge-mono" id="meggerLeadBadge">Leads off</span></div>
+            <div class="megger-grid">
             <div><span>IR 1-min</span><strong id="valMegger1Min">—</strong></div>
             <div><span>IR 10-min</span><strong id="valMegger10Min">—</strong></div>
             <div><span>PI ratio</span><strong id="valMeggerPI">—</strong></div>
             <div><span>Stored charge</span><strong id="valMeggerVolts">0 V DC</strong></div>
           </div>
-          <div style="display:flex;gap:4px;">
-            <button type="button" class="btn btn-sm" id="btnConnectMeggerLeads">Connect leads</button>
-            <button type="button" class="btn btn-sm btn-test" id="btnExecuteMeggerTest">Run 5 kV test</button>
+            <div class="op-row">
+              <button type="button" class="btn btn-sm" id="btnConnectMeggerLeads">Connect leads</button>
+              <button type="button" class="btn btn-sm btn-test" id="btnExecuteMeggerTest">Run 5 kV test</button>
+            </div>
+            <button type="button" class="btn btn-sm btn-success" id="btnBleedMeggerCharge">Discharge winding to 0 V</button>
           </div>
-          <button type="button" class="btn btn-sm btn-success" id="btnBleedMeggerCharge">Discharge winding to 0 V</button>
         </div>
       </div>
     </aside>
 
-    <!-- CENTER -->
+    <!-- CENTER: full-bleed stage with floating clusters -->
     <section class="center-viewport">
-      <!-- Priority #1: Docked Sidebar Collapse/Expand Chevrons -->
-      <button type="button" class="sidebar-edge-toggle edge-left" id="btnCollapseLeft" title="Collapse/Expand Left Sidebar">&laquo;</button>
-      <button type="button" class="sidebar-edge-toggle edge-right" id="btnCollapseRight" title="Collapse/Expand Right Sidebar">&raquo;</button>
+      <div class="stage-3d-wrap" id="stage3DWrap">
+        <div id="threeCanvasHost"></div>
+        <div class="callout-layer" id="calloutLayer"><svg class="callout-svg" id="calloutSvg"></svg></div>
 
-      <div class="view-toolbar">
-        <div class="segmented-tabs" role="tablist">
-          <button type="button" class="segmented-tab active" id="tabView3D"><svg class="ic"><use href="#i-cube"/></svg>3D Twin</button>
-          <button type="button" class="segmented-tab" id="tabViewFaceplate"><svg class="ic"><use href="#i-panel"/></svg>Faceplate</button>
-          <button type="button" class="segmented-tab" id="tabViewInterior"><svg class="ic"><use href="#i-door"/></svg>Compartment</button>
-          <button type="button" class="segmented-tab" id="tabViewSLD"><svg class="ic"><use href="#i-diagram"/></svg>Single-line</button>
-        </div>
-        <div class="cubicle-nav-pills" id="cubicleNavPills">
-          <button type="button" class="cub-pill" data-c="DG1" style="--bay: var(--bay-c1);"><span class="bay-dot"></span>C1 DG1</button>
-          <button type="button" class="cub-pill" data-c="BT1" style="--bay: var(--bay-c2);"><span class="bay-dot"></span>C2 BT1</button>
-          <button type="button" class="cub-pill active" data-c="BT-M1" style="--bay: var(--bay-c3);"><span class="bay-dot"></span>C3 BT-M1</button>
-          <button type="button" class="cub-pill" data-c="TR1-HV" style="--bay: var(--bay-c4);"><span class="bay-dot"></span>C4 TR1-HV</button>
-          <button type="button" class="cub-pill" data-c="ACB-TR1-LV" style="--bay: var(--bay-c5);"><span class="bay-dot"></span>C5 LV-ACB</button>
-        </div>
-      </div>
-
-      <!-- 3D CAD toolbar (docked, not floating) -->
-      <div class="cad-toolbar" id="cadToolbar">
-        <div class="tb-group">
-          <span class="tb-label">View</span>
-          <button type="button" class="chip" data-cam="lineup">Lineup</button>
-          <button type="button" class="chip active" data-cam="focus">Active bay</button>
-          <button type="button" class="chip" data-cam="interior">Spouts</button>
-          <button type="button" class="chip" data-cam="vacuum">Interrupters</button>
-          <button type="button" class="chip" data-cam="rear">Rear bus</button>
+        <!-- 3D view tools (vertical CAD cluster) -->
+        <div class="cad-toolbar cluster cad-cluster" id="cadToolbar" aria-label="3D view tools">
+          <button type="button" class="chip" popovertarget="camMenu" aria-haspopup="menu"><svg class="ic"><use href="#i-camera"/></svg>Camera<svg class="ic ic-sm chev" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+          <div id="camMenu" popover="auto" class="popover cam-menu" aria-label="Camera presets">
+            <div class="popover-head"><strong>Camera</strong></div>
+            <button type="button" class="chip menu-chip" data-cam="lineup">Lineup</button><button type="button" class="chip menu-chip active" data-cam="focus">Active bay</button><button type="button" class="chip menu-chip" data-cam="interior">Spouts</button><button type="button" class="chip menu-chip" data-cam="vacuum">Interrupters</button><button type="button" class="chip menu-chip" data-cam="rear">Rear bus</button>
+          </div>
           <button type="button" class="chip" data-cam="fit"><svg class="ic"><use href="#i-fit"/></svg>Fit</button>
-          <span class="tb-sep"></span>
+          <span class="cluster-sep"></span>
           <button type="button" class="chip active" id="btn3DCallouts"><svg class="ic"><use href="#i-pin"/></svg>Labels</button>
           <button type="button" class="chip" id="btn3DXray"><svg class="ic"><use href="#i-eye"/></svg>X-ray</button>
           <button type="button" class="chip" id="btn3DOrbit"><svg class="ic"><use href="#i-orbit"/></svg>Orbit</button>
+          <button type="button" class="chip" popovertarget="explodeMenu" aria-haspopup="dialog"><svg class="ic"><use href="#i-explode"/></svg>Explode <span class="num chip-val" id="lblExplodePct">0%</span></button>
+          <div id="explodeMenu" popover="auto" class="popover explode-menu" aria-label="Explode">
+            <div class="slider">
+              <label for="sliderExplode" class="eyebrow">Explode</label>
+              <input type="range" id="sliderExplode" class="cad-slider" min="0" max="100" step="1" value="0" aria-valuetext="0% assembled" />
+              <span class="slider-stops">
+                <button type="button" class="chip" data-exp="0">0</button>
+                <button type="button" class="chip" data-exp="50">50</button>
+                <button type="button" class="chip" data-exp="100">100</button>
+              </span>
+            </div>
+          </div>
+          <span class="cluster-sep"></span>
           <button type="button" class="chip" id="btnTheater3D" title="Maximize 3D Viewport (F)"><svg class="ic"><use href="#i-expand"/></svg>Maximize 3D [F]</button>
-          <button type="button" class="chip chip-arc-demo" id="btnArcFlashDemo" title="Simulate 6.6 kV 3-Phase Arc-Flash Explosion (A1-A4)"><svg class="ic"><use href="#i-bolt"/></svg>Arc-Flash Demo</button>
+          <button type="button" class="chip chip-hazard chip-arc-demo" id="btnArcFlashDemo" title="Simulate 6.6 kV 3-Phase Arc-Flash Explosion (A1-A4)"><svg class="ic"><use href="#i-bolt"/></svg>Arc-flash demo</button>
         </div>
-        <div class="tb-group">
-          <label for="sliderExplode" class="tb-label" style="cursor:pointer;">Explode</label>
-          <input type="range" id="sliderExplode" class="cad-slider" min="0" max="100" step="1" value="0" aria-valuetext="0% assembled" />
-          <span class="num" id="lblExplodePct" style="font-size:12px;font-weight:700;min-width:36px;color:var(--accent);">0%</span>
-          <button type="button" class="chip" data-exp="0">0</button>
-          <button type="button" class="chip" data-exp="50">50</button>
-          <button type="button" class="chip" data-exp="100">100</button>
-        </div>
-      </div>
 
-      <!-- Assembly parts strip -->
-      <div class="parts-strip" id="partsStrip">
-        <div class="parts-strip-left">
+        <!-- Parts selector (19 sub-assemblies) -->
+        <div class="parts-strip cluster" id="partsStrip">
           <button type="button" class="parts-dropdown-btn" id="btnPartsDropdown" popovertarget="partsDropdownMenu">
             <span class="cat-dot" id="partsDropdownDot" style="background:var(--accent);"></span>
-            <span class="parts-dropdown-title">Equipment Parts</span>
+            <span class="parts-dropdown-title">Parts</span>
             <span class="parts-dropdown-badge" id="partsDropdownBadge">All (19)</span>
-            <span class="parts-dropdown-caret" aria-hidden="true">&#9662;</span>
+            <svg class="ic ic-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
           </button>
           <div id="partsDropdownMenu" popover="auto" class="parts-dropdown-menu">
             <div class="parts-dropdown-head">
               <span>19 Sub-Assemblies &middot; IEC 62271-200 Form 4b</span>
               <span class="num">Select a part to isolate in 3D</span>
             </div>
-            <div class="part-chips" id="partChips"></div>
-          </div>
-          <button type="button" class="chip" id="btnPartResetAll" hidden title="Reset part isolation to show all 19 sub-assemblies">Show All</button>
-          <div class="part-info" id="partInfo"></div>
-        </div>
-        <div class="cat-legend">
+            <div class="cat-legend" role="group" aria-label="Category filter">
           <span style="--cat: var(--cat-enclosure);"><i></i>Enclosure</span>
           <span style="--cat: var(--cat-control);"><i></i>Control</span>
           <span style="--cat: var(--cat-mechanism);"><i></i>Mechanism</span>
@@ -1347,11 +1580,13 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
           <span style="--cat: var(--cat-earthing);"><i></i>Earthing</span>
           <span style="--cat: var(--cat-power);"><i></i>Power path</span>
         </div>
-      </div>
+            <label class="parts-search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="search" id="partsSearch" placeholder="Search parts — code or name" aria-label="Search parts" /></label>
+            <div class="part-chips" id="partChips"></div>
+          </div>
+          <button type="button" class="chip" id="btnPartResetAll" hidden title="Reset part isolation to show all 19 sub-assemblies">Show All</button>
+          <div class="part-info" id="partInfo"></div>
+        </div>
 
-      <div class="stage-3d-wrap" id="stage3DWrap">
-        <div id="threeCanvasHost"></div>
-        <div class="callout-layer" id="calloutLayer"><svg class="callout-svg" id="calloutSvg"></svg></div>
         <div class="stage-hint">Drag to orbit · Right-drag to pan · Scroll to zoom · Click a bay or part</div>
         <div class="arc-flash-vignette" id="arcFlashVignette" aria-hidden="true"></div>
         <div class="arc-flash-hud-banner" id="arcFlashHudBanner" hidden role="alert"></div>
@@ -1361,98 +1596,105 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
 
       <div class="view-stage" id="viewStageArea"></div>
 
-      <footer class="busbar-dock">
-        <div class="busbar-strip">
-          <div class="bus-card live" id="busCardA"><span class="bus-name">6.6 kV Bus A · Port</span><span class="bus-telemetry" id="busAText">6.65 kV · 60.0 Hz</span></div>
-          <div class="bus-card live" id="busCardB"><span class="bus-name">6.6 kV Bus B · Stbd</span><span class="bus-telemetry" id="busBText">6.65 kV · 60.0 Hz</span></div>
-          <div class="bus-card" id="busCardFeeder"><span class="bus-name">Bow Thruster BT-M1</span><span class="bus-telemetry" id="busFeederText">6.60 kV</span></div>
-          <div class="bus-card" id="busCardTr1"><span class="bus-name">Transformer TR1</span><span class="bus-telemetry" id="busTr1Text">6.6 kV / 440 V</span></div>
-          <div class="bus-card live" id="busCard440"><span class="bus-name">440 V LV Main Bus</span><span class="bus-telemetry">441 V · 60.0 Hz</span></div>
+      <!-- View tabs + bay pills (float over 3D and 2D views) -->
+      <div class="view-toolbar cluster view-cluster">
+        <div class="segmented-tabs" role="tablist" aria-label="View">
+          <button type="button" class="segmented-tab active" id="tabView3D" role="tab"><svg class="ic"><use href="#i-cube"/></svg>3D Twin</button>
+          <button type="button" class="segmented-tab" id="tabViewFaceplate" role="tab"><svg class="ic"><use href="#i-panel"/></svg>Faceplate</button>
+          <button type="button" class="segmented-tab" id="tabViewInterior" role="tab"><svg class="ic"><use href="#i-door"/></svg>Compartment</button>
+          <button type="button" class="segmented-tab" id="tabViewSLD" role="tab"><svg class="ic"><use href="#i-diagram"/></svg>Single-line</button>
         </div>
-        <div class="busbar-legend-row">
-          <div class="legend-dots">
-            <div class="legend-item"><span class="legend-indicator" style="background:var(--live);"></span>Energized</div>
-            <div class="legend-item"><span class="legend-indicator" style="background:var(--dead);"></span>De-energized</div>
-            <div class="legend-item"><span class="legend-indicator" style="background:var(--safe);"></span>Earthed</div>
-            <div class="legend-item"><span class="legend-indicator" style="background:var(--test);"></span>Test / charge</div>
-          </div>
-          <div id="quickStepTipText" style="color:var(--text-2);font-weight:500;"></div>
+        <span class="cluster-sep"></span>
+        <div class="cubicle-nav-pills cub-pills" id="cubicleNavPills">
+          <button type="button" class="cub-pill" data-c="DG1" style="--bay: var(--bay-c1);"><span class="bay-dot"></span>C1 DG1</button>
+          <button type="button" class="cub-pill" data-c="BT1" style="--bay: var(--bay-c2);"><span class="bay-dot"></span>C2 BT1</button>
+          <button type="button" class="cub-pill active" data-c="BT-M1" style="--bay: var(--bay-c3);"><span class="bay-dot"></span>C3 BT-M1</button>
+          <button type="button" class="cub-pill" data-c="TR1-HV" style="--bay: var(--bay-c4);"><span class="bay-dot"></span>C4 TR1-HV</button>
+          <button type="button" class="cub-pill" data-c="ACB-TR1-LV" style="--bay: var(--bay-c5);"><span class="bay-dot"></span>C5 LV-ACB</button>
+        </div>
+      </div>
+
+      <!-- Bus / feeder mimic + last event -->
+      <footer class="busbar-dock">
+        <div class="busbar-strip bus-strip" role="list" aria-label="Bus and feeder state">
+            <div class="bus-card live" id="busCardA"><span class="bus-name">6.6 kV Bus A · Port</span><span class="bus-telemetry" id="busAText">6.65 kV · 60.0 Hz</span></div>
+            <div class="bus-card live" id="busCardB"><span class="bus-name">6.6 kV Bus B · Stbd</span><span class="bus-telemetry" id="busBText">6.65 kV · 60.0 Hz</span></div>
+            <div class="bus-card" id="busCardFeeder"><span class="bus-name">Bow Thruster BT-M1</span><span class="bus-telemetry" id="busFeederText">6.60 kV</span></div>
+            <div class="bus-card" id="busCardTr1"><span class="bus-name">Transformer TR1</span><span class="bus-telemetry" id="busTr1Text">6.6 kV / 440 V</span></div>
+            <div class="bus-card live" id="busCard440"><span class="bus-name">440 V LV Main Bus</span><span class="bus-telemetry">441 V · 60.0 Hz</span></div>
+        </div>
+        <div class="bottom-status-strip">
+          <div id="bottomStatusEvent">Last event: simulator ready.</div>
         </div>
       </footer>
 
-      <div class="bottom-status-strip">
-        <div id="bottomStatusScenario"><strong>Mission 01</strong> · Bow Thruster 6.6 kV Motor Isolation &amp; PTW</div>
-        <div id="bottomStatusEvent">Last event: simulator ready.</div>
-      </div>
-    </section>
-
-    <!-- RIGHT PANEL -->
-    <aside class="panel right-panel">
-      <div class="inspector-header" id="inspHeader">
-        <span class="eyebrow" id="inspEyebrow">6.6 kV Main Switchboard</span>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-          <h2><span class="bay-code" id="inspBayCode">C3</span><span id="inspTitle">BT-M1</span></h2>
-          <span class="state-flag red" id="inspStatusBadge">LIVE</span>
-        </div>
-      </div>
-
-      <div class="equipment-meta-grid">
-        <div class="meta-box"><span>Feeder voltage</span><strong id="metaVoltage">6.60 kV · 60.0 Hz</strong></div>
-        <div class="meta-box"><span>Current / load</span><strong id="metaCurrent">198 A · 1,800 kW</strong></div>
-        <div class="meta-box"><span>VCB truck</span><strong id="metaTruck">SERVICE 20/20</strong></div>
-        <div class="meta-box"><span>Earth switch</span><strong id="metaEarth">OPEN</strong></div>
-      </div>
-
-      <div class="bay-controls" id="bayControls"></div>
-
-      <div class="loto-container">
-        <div class="loto-header-row">
-          <div>
-            <span class="section-title" style="--sec: var(--accent);"><span class="sec-icon"><svg class="ic"><use href="#i-lock"/></svg></span>Lockout / Tagout</span>
-            <span class="eyebrow" id="lotoPtwCode" style="display:block;margin-top:4px;">PTW-HV-6600-01A · Step 0 of 6</span>
+      <!-- OPERATOR COLUMN: current LOTO step + Bay Operator -->
+      <button type="button" class="sidebar-edge-toggle edge-right" id="btnCollapseRight" title="Collapse/Expand Right Sidebar">&raquo;</button>
+      <aside class="panel right-panel op-column" aria-label="Lockout / Tagout and Bay Operator">
+        <section class="op-card loto-container" aria-label="Lockout / Tagout">
+          <div class="loto-header-row">
+            <h2 class="op-card-title"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>Lockout / Tagout</h2>
+            <button type="button" class="btn btn-sm" id="btnFullPtwView"><svg class="ic ic-sm"><use href="#i-doc"/></svg>Permit</button>
           </div>
-          <button type="button" class="btn btn-sm" id="btnFullPtwView"><svg class="ic ic-sm"><use href="#i-doc"/></svg>Permit</button>
-        </div>
-        <div class="loto-progress"><div id="lotoProgressBar" style="width:0%;"></div></div>
-        <div class="loto-status-strip">
-          <div><span>Feeder VCB</span><strong id="lotoStripVcb">CLOSED</strong></div>
-          <div><span>VCB truck</span><strong id="lotoStripTruck">SERVICE</strong></div>
-          <div><span>Voltage test</span><strong id="lotoStripPtp">NOT PROVEN</strong></div>
-          <div><span>Circuit earth</span><strong id="lotoStripEarth">OPEN</strong></div>
-        </div>
-        <div id="lotoStepsList" style="display:flex;flex-direction:column;gap:7px;"></div>
-        <button type="button" class="btn btn-sm" id="btnResetPermit" style="align-self:flex-start;"><svg class="ic ic-sm"><use href="#i-reset"/></svg>Reset permit procedure</button>
-      </div>
+          <span class="num loto-code" id="lotoPtwCode">PTW-HV-6600-01A · Step 0 of 6</span>
+          <div class="loto-progress meter" aria-hidden="true"><div id="lotoProgressBar" style="width:0%;"></div></div>
+          <div class="loto-status-strip sr-only">
+            <div><span>Feeder VCB</span><strong id="lotoStripVcb">CLOSED</strong></div>
+            <div><span>VCB truck</span><strong id="lotoStripTruck">SERVICE</strong></div>
+            <div><span>Voltage test</span><strong id="lotoStripPtp">NOT PROVEN</strong></div>
+            <div><span>Circuit earth</span><strong id="lotoStripEarth">OPEN</strong></div>
+          </div>
+          <div id="lotoStepsList" class="stepper"></div>
+          <div class="loto-foot">
+            <span id="quickStepTipText" class="loto-next"></span>
+            <button type="button" class="btn btn-quiet btn-xs" id="btnResetPermit"><svg class="ic ic-sm"><use href="#i-reset"/></svg>Reset permit procedure</button>
+          </div>
+        </section>
 
-      <div class="info-footer-card">
-        <span class="eyebrow">Purpose</span>
-        <p id="infoPurposeText" style="color:var(--text-2);"></p>
-      </div>
-      <div class="info-footer-card">
-        <span class="eyebrow">Standards</span>
-        <p style="color:var(--text-2);font-family:var(--font-mono);font-size:11.5px;">STCW A-III/6 · IEC 60092-503 · IEC 62271-200 · MCA COSWP Ch. 22</p>
-      </div>
-    </aside>
+        <section class="op-card bay-op" id="bayOperator" aria-label="Bay operator">
+          <div class="inspector-header bay-op-head" id="inspHeader">
+            <span class="bay-code" id="inspBayCode">C3</span>
+            <span class="bay-op-title" id="inspTitle">BT-M1</span>
+            <span class="state-flag solid red" id="inspStatusBadge">LIVE</span>
+            <span class="bay-op-sub eyebrow" id="inspEyebrow">6.6 kV Main Switchboard</span>
+          </div>
+          <div class="equipment-meta-grid">
+            <div class="meta-box"><span>Feeder voltage</span><strong id="metaVoltage">6.60 kV · 60.0 Hz</strong></div>
+            <div class="meta-box"><span>Current / load</span><strong id="metaCurrent">198 A · 1,800 kW</strong></div>
+            <div class="meta-box"><span>VCB truck</span><strong id="metaTruck">SERVICE 20/20</strong></div>
+            <div class="meta-box"><span>Earth switch</span><strong id="metaEarth">OPEN</strong></div>
+          </div>
+          <div class="bay-controls" id="bayControls"></div>
+          <details class="bay-about">
+            <summary>About this bay · standards</summary>
+            <p id="infoPurposeText"></p>
+            <p class="num bay-std">STCW A-III/6 · IEC 60092-503 · IEC 62271-200 · MCA COSWP Ch. 22</p>
+          </details>
+        </section>
+      </aside>
+    </section>
   </main>
 
-  <!-- FLOATING TUTORIAL -->
-  <div class="help-float hidden" id="helpFloat" aria-labelledby="helpTitle">
-    <div class="help-float-head" id="helpDragHandle">
-      <div class="help-float-title">
-        <span class="sec-icon"><svg class="ic"><use href="#i-help"/></svg></span>
-        <h2 id="helpTitle">Step-by-step tutorial</h2>
-      </div>
+  <!-- HELP DRAWER (replaces the floating tutorial; same panes and IDs) -->
+  <div class="help-float drawer hidden" id="helpFloat" aria-labelledby="helpTitle" role="complementary">
+    <div class="help-float-head drawer-head" id="helpDragHandle">
+      <svg class="ic" aria-hidden="true"><use href="#i-help"/></svg>
+      <h2 id="helpTitle">Help &amp; reference</h2>
       <div class="help-float-ctrls">
-        <button class="help-ctrl-btn" id="helpMinimize" title="Minimize" aria-label="Minimize" type="button"><svg class="ic"><use href="#i-minus"/></svg></button>
-        <button class="help-ctrl-btn" id="helpExpand" title="Toggle width" aria-label="Toggle width" type="button"><svg class="ic"><use href="#i-expand"/></svg></button>
-        <button class="help-ctrl-btn" id="helpCloseBtn" title="Close" aria-label="Close tutorial" type="button"><svg class="ic"><use href="#i-x"/></svg></button>
+        <button class="help-ctrl-btn" id="helpMinimize" title="Minimize" aria-label="Minimize" type="button" hidden><svg class="ic"><use href="#i-minus"/></svg></button>
+        <button class="help-ctrl-btn" id="helpExpand" title="Toggle width" aria-label="Toggle width" type="button" hidden><svg class="ic"><use href="#i-expand"/></svg></button>
+        <button class="btn btn-quiet btn-sm btn-icon" id="helpCloseBtn" title="Close" aria-label="Close help" type="button"><svg class="ic"><use href="#i-x"/></svg></button>
       </div>
     </div>
-    <div class="help-float-tabs">
-      <button class="help-tab-btn active" data-htab="walkthrough" type="button">Walkthrough</button>
-      <button class="help-tab-btn" data-htab="golden-rules" type="button">5 Golden Rules</button>
-      <button class="help-tab-btn" data-htab="missions" type="button">Missions</button>
-      <button class="help-tab-btn" data-htab="interlocks" type="button">3D &amp; Interlocks FAQ</button>
+    <div class="help-search">
+      <label class="chip help-search-field"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input type="search" id="helpSearch" placeholder="Search rules, missions, interlocks" aria-label="Search help" /></label>
+      <span class="help-search-count eyebrow" id="helpSearchCount" aria-live="polite"></span>
+    </div>
+    <div class="help-float-tabs segmented-tabs" role="tablist">
+      <button class="help-tab-btn segmented-tab active" data-htab="walkthrough" type="button">Walkthrough</button>
+      <button class="help-tab-btn segmented-tab" data-htab="golden-rules" type="button">Golden Rules</button>
+      <button class="help-tab-btn segmented-tab" data-htab="missions" type="button">Missions</button>
+      <button class="help-tab-btn segmented-tab" data-htab="interlocks" type="button">Interlock FAQ</button>
     </div>
     <div class="help-float-body">
       <div class="htab-pane" id="hpane-walkthrough">
@@ -4149,7 +4391,8 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
 
       document.getElementById('btnToggleMode').addEventListener('click', (e) => {
         SIM.mode = SIM.mode === 'TRAIN' ? 'EXAM' : 'TRAIN';
-        e.currentTarget.innerHTML = `Mode: <strong>${SIM.mode === 'TRAIN' ? 'Training' : 'Exam / CoC'}</strong>`;
+        e.currentTarget.innerHTML = `<span class="segmented-tab ${SIM.mode === 'TRAIN' ? 'active' : ''}" data-mode="train">Training</span><span class="segmented-tab ${SIM.mode === 'EXAM' ? 'active' : ''}" data-mode="exam">Exam</span>`;
+        e.currentTarget.setAttribute('aria-label', SIM.mode === 'TRAIN' ? 'Mode: Training. Click to switch to Exam / CoC' : 'Mode: Exam / CoC. Click to switch to Training');
         render();
       });
 
@@ -4197,42 +4440,8 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
 
       // Draggable Tutorial Window
       const helpFloat = document.getElementById('helpFloat');
-      const dragHandle = document.getElementById('helpDragHandle');
-      let isDraggingHelp = false;
-      let dragStartX = 0, dragStartY = 0, initialLeft = 0, initialTop = 0;
-
-      if (dragHandle && helpFloat) {
-        dragHandle.addEventListener('pointerdown', (e) => {
-          if (e.target.closest('.help-ctrl-btn')) return;
-          isDraggingHelp = true;
-          dragHandle.setPointerCapture(e.pointerId);
-          const rect = helpFloat.getBoundingClientRect();
-          dragStartX = e.clientX;
-          dragStartY = e.clientY;
-          initialLeft = rect.left;
-          initialTop = rect.top;
-          e.preventDefault();
-        });
-
-        dragHandle.addEventListener('pointermove', (e) => {
-          if (!isDraggingHelp) return;
-          const dx = e.clientX - dragStartX;
-          const dy = e.clientY - dragStartY;
-          const maxLeft = window.innerWidth - helpFloat.offsetWidth - 10;
-          const maxTop = window.innerHeight - 50;
-          helpFloat.style.left = Math.max(10, Math.min(initialLeft + dx, maxLeft)) + 'px';
-          helpFloat.style.top = Math.max(40, Math.min(initialTop + dy, maxTop)) + 'px';
-          helpFloat.style.right = 'auto';
-        });
-
-        const endDrag = (e) => {
-          if (!isDraggingHelp) return;
-          isDraggingHelp = false;
-          try { dragHandle.releasePointerCapture(e.pointerId); } catch (_) {}
-        };
-        dragHandle.addEventListener('pointerup', endDrag);
-        dragHandle.addEventListener('pointercancel', endDrag);
-
+      // Help is a docked drawer: no drag, minimize or widen (buttons kept hidden for their IDs)
+      if (helpFloat) {
         document.getElementById('btnToggleHelp').addEventListener('click', () => {
           helpFloat.classList.toggle('hidden');
           if (!helpFloat.classList.contains('hidden')) helpFloat.classList.remove('minimized');
@@ -4261,6 +4470,158 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
   <!-- ==========================================================================
        PART B: THREE.JS r160 19-SUB-ASSEMBLY 3D CAD DIGITAL TWIN
        ========================================================================== -->
+  <!-- ==========================================================================
+       SHELL UI (presentation only): rail → drawers, popovers, theme & density,
+       help search. Reads SIM; never changes simulation state.
+       ========================================================================== -->
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const store = {
+        get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+        set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} }
+      };
+
+      // Theme (Day / Night watch / Projector) and Presentation density, remembered per viewer
+      function applyTheme(t) {
+        if (!['day', 'night', 'projector'].includes(t)) t = 'day';
+        document.documentElement.dataset.theme = t;
+        document.documentElement.style.colorScheme = t === 'night' ? 'dark' : 'light';
+        document.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.themeSet === t)));
+      }
+      function applyDensity(on) {
+        document.body.classList.toggle('density-presentation', on);
+        const b = $('btnDensity'); if (b) b.setAttribute('aria-checked', String(on));
+      }
+      applyTheme(store.get('mhv-theme') || 'day');
+      applyDensity(store.get('mhv-density') === 'presentation');
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const grid = $('workspaceGrid');
+        const help = $('helpFloat');
+        const isOpen = () => !grid.classList.contains('left-collapsed');
+        const setOpen = (open) => { if (open !== isOpen()) toggleLeftSidebar(); };
+        const closeHelp = () => help && help.classList.add('hidden');
+
+        document.querySelectorAll('[data-theme-set]').forEach((b) => b.addEventListener('click', () => {
+          applyTheme(b.dataset.themeSet); store.set('mhv-theme', b.dataset.themeSet);
+        }));
+        $('btnDensity').addEventListener('click', () => {
+          const on = !document.body.classList.contains('density-presentation');
+          applyDensity(on); store.set('mhv-density', on ? 'presentation' : 'default');
+          window.dispatchEvent(new Event('resize'));
+        });
+        // Close menus after their command runs
+        ['btnOpenManual', 'btnResetAll', 'btnToggleAudio'].forEach((id) => $(id).addEventListener('click', () => {
+          const m = $('moreMenu'); if (m && m.matches(':popover-open') && id !== 'btnToggleAudio') m.hidePopover();
+        }));
+        document.querySelectorAll('.scenario-btn').forEach((b) => b.addEventListener('click', () => {
+          const m = $('missionMenu'); if (m && m.matches(':popover-open')) m.hidePopover();
+        }));
+        document.querySelectorAll('#camMenu [data-cam]').forEach((b) => b.addEventListener('click', () => {
+          const m = $('camMenu'); if (m && m.matches(':popover-open')) m.hidePopover();
+        }));
+
+        // Rail: the PPE / Tools buttons keep their shipped listeners (setLeftPanelTab);
+        // this only opens or closes the drawer around them.
+        let wasOpen = false, prevTab = null;
+        const rail = document.querySelector('.rail');
+        rail.addEventListener('pointerdown', () => { wasOpen = isOpen(); prevTab = SIM.leftPanelTab; }, true);
+        rail.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { wasOpen = isOpen(); prevTab = SIM.leftPanelTab; } }, true);
+        const railPane = (btnId, tab, after) => $(btnId).addEventListener('click', () => {
+          closeHelp();
+          if (wasOpen && prevTab === tab && !after) { setOpen(false); }
+          else { setLeftPanelTab(tab); setOpen(true); if (after) after(); }
+          syncRail();
+        });
+        railPane('tabLeftMissionPpe', 'MISSION_PPE');
+        railPane('tabLeftToolsKeys', 'TOOLS_KEYS');
+        railPane('railMegger', 'TOOLS_KEYS', () => { const m = $('meggerSectionBox'); if (m) m.scrollIntoView({ block: 'start' }); });
+        $('railParts').addEventListener('click', () => {
+          closeHelp(); setOpen(false);
+          if (SIM.viewMode !== '3D') { SIM.viewMode = '3D'; render(); }
+          $('btnPartsDropdown').click();
+        });
+        $('railPermit').addEventListener('click', () => $('btnFullPtwView').click());
+        $('btnToggleHelp').addEventListener('click', () => { if (!help.classList.contains('hidden')) setOpen(false); syncRail(); });
+        $('helpCloseBtn').addEventListener('click', syncRail);
+        $('btnCollapseLeft').addEventListener('click', syncRail);
+
+        function syncRail() {
+          const open = isOpen();
+          const tools = SIM.leftPanelTab === 'TOOLS_KEYS';
+          $('tabLeftToolsKeys').setAttribute('aria-expanded', String(open && tools));
+          $('tabLeftMissionPpe').setAttribute('aria-expanded', String(open && !tools));
+          $('btnToggleHelp').setAttribute('aria-expanded', String(!help.classList.contains('hidden')));
+        }
+
+        // Keys in hand → badge on the Tools rail button
+        const keyBadge = $('railKeyBadge');
+        const countKeys = () => {
+          const n = document.querySelectorAll('#keyChipsContainer .key-tag.in-hand').length;
+          keyBadge.hidden = n === 0; keyBadge.textContent = String(n);
+        };
+        new MutationObserver(countKeys).observe($('keyChipsContainer'), { childList: true, subtree: true });
+
+        // Esc closes the topmost shell layer (dialogs and popovers handle Esc natively)
+        window.addEventListener('keydown', (e) => {
+          if (e.key !== 'Escape' || document.querySelector('dialog[open]') || document.querySelector(':popover-open')) return;
+          if (!help.classList.contains('hidden')) { closeHelp(); syncRail(); }
+          else if (isOpen()) { setOpen(false); syncRail(); }
+        });
+
+        // Parts search (filters the 19 chips the 3D module renders into #partChips)
+        $('partsSearch').addEventListener('input', (e) => {
+          const q = e.target.value.trim().toLowerCase();
+          document.querySelectorAll('#partChips .part-chip').forEach((c) => {
+            const hit = !q || c.dataset.part === 'all' || c.textContent.toLowerCase().includes(q);
+            if (hit) c.removeAttribute('data-hidden-by-search'); else c.setAttribute('data-hidden-by-search', '');
+          });
+        });
+
+        // Help search: across all four panes; shows matching cards and highlights the term
+        const helpSearch = $('helpSearch');
+        const cards = () => help.querySelectorAll('.guide-step-card, .guide-banner, .faq-q, .faq-a');
+        let paneBefore = null;
+        helpSearch.addEventListener('input', () => {
+          const q = helpSearch.value.trim().toLowerCase();
+          help.querySelectorAll('mark[data-hl]').forEach((m) => m.replaceWith(document.createTextNode(m.textContent)));
+          help.normalize();
+          const panes = help.querySelectorAll('.htab-pane');
+          if (!q) {
+            cards().forEach((c) => c.removeAttribute('data-search-hidden'));
+            if (paneBefore) { paneBefore.click(); paneBefore = null; }
+            $('helpSearchCount').textContent = '';
+            return;
+          }
+          if (!paneBefore) paneBefore = help.querySelector('.help-tab-btn.active');
+          panes.forEach((p) => { p.style.display = 'block'; });
+          help.querySelectorAll('.help-tab-btn').forEach((t) => t.classList.remove('active'));
+          let hits = 0;
+          cards().forEach((c) => {
+            const hit = c.textContent.toLowerCase().includes(q);
+            if (hit) { c.removeAttribute('data-search-hidden'); hits++; highlight(c, q); } else c.setAttribute('data-search-hidden', '');
+          });
+          $('helpSearchCount').textContent = `${hits} result${hits === 1 ? '' : 's'} for “${helpSearch.value.trim()}” across all tabs`;
+        });
+        function highlight(root, q) {
+          const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+          const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+          nodes.forEach((n) => {
+            const i = n.data.toLowerCase().indexOf(q); if (i < 0) return;
+            const after = n.splitText(i); after.splitText(q.length);
+            const m = document.createElement('mark'); m.dataset.hl = ''; m.textContent = after.data; after.replaceWith(m);
+          });
+        }
+        help.querySelectorAll('.help-tab-btn').forEach((t) => t.addEventListener('click', () => {
+          if (helpSearch.value) { helpSearch.value = ''; helpSearch.dispatchEvent(new Event('input')); paneBefore = null; t.click(); }
+        }));
+
+        syncRail(); countKeys();
+      });
+    })();
+  </script>
+
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
