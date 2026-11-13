@@ -1275,6 +1275,34 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
       .rail-btn, .menu-item, .scenario-btn, .tool-item { min-height: var(--control-touch); }
     }
 
+    /* ==========================================================================
+       BAY OPERATOR + LOTO STEPPER
+       ========================================================================== */
+    .bay-op .bay-op-sec { padding: 10px 14px; }
+    .bay-op .bay-op-sec + .bay-op-sec { border-top: 1px solid var(--line); }
+    .bay-op .eyebrow .num { text-transform: none; letter-spacing: 0; font-size: 13px; }
+    .bay-ppe { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; background: var(--earth-tint); }
+    .bay-ppe[hidden] { display: none; }
+    .bay-ppe .ind-glyph { color: var(--earth); background: var(--surface); width: 28px; height: 28px; grid-row: auto; }
+    .bay-ppe-text { display: flex; flex-direction: column; font-size: 14px; line-height: 18px; }
+    .bay-ppe-text span { color: var(--text-2); font-size: 13px; }
+    .bay-state { gap: 8px; }
+    .truck[hidden], .ind[hidden] { display: none; }
+    .truck-tick.minor { height: 6px; top: 11px; }
+    .ind .ind-lock[hidden] { display: none; }
+    .ind-value { overflow-wrap: anywhere; }
+    .bay-load { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14px; }
+    .bay-keys:empty { display: none; }
+    .bay-keys .key-tag { min-height: 28px; font-size: 13px; }
+    .key-tag .key-where { font-weight: 400; }
+    .bay-controls { padding: 0; border: 0; gap: 0; }
+    .bay-controls .op-row .btn { flex: 1 1 auto; }
+    .bay-controls .terminals .btn { flex: 1 1 0; min-width: 0; }
+    #lotoStepsList.stepper { gap: 2px; margin: 2px -6px 0; }
+    .st .st-act .btn-quiet { min-height: 28px; padding: 0 8px; font-size: 13px; color: var(--text-3); }
+    .st.pending .st-act { margin-top: 2px; }
+    .exam-mode .st .st-act { display: none; }
+
   </style>
 </head>
 <body>
@@ -1658,11 +1686,38 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
             <span class="state-flag solid red" id="inspStatusBadge">LIVE</span>
             <span class="bay-op-sub eyebrow" id="inspEyebrow">6.6 kV Main Switchboard</span>
           </div>
-          <div class="equipment-meta-grid">
-            <div class="meta-box"><span>Feeder voltage</span><strong id="metaVoltage">6.60 kV · 60.0 Hz</strong></div>
-            <div class="meta-box"><span>Current / load</span><strong id="metaCurrent">198 A · 1,800 kW</strong></div>
-            <div class="meta-box"><span>VCB truck</span><strong id="metaTruck">SERVICE 20/20</strong></div>
-            <div class="meta-box"><span>Earth switch</span><strong id="metaEarth">OPEN</strong></div>
+          <div class="bay-op-sec bay-ppe" id="bayPpeBanner" hidden>
+            <span class="ind-glyph" aria-hidden="true"><svg class="ic"><use href="#i-shield"/></svg></span>
+            <div class="bay-ppe-text"><strong id="bayPpeCount">PPE 0/3 donned</strong><span>Required before HV operation</span></div>
+            <button type="button" class="btn btn-sm btn-primary" data-hud-act="ppe" onclick="document.getElementById('btnEquipAllPPE').click()">Don all</button>
+          </div>
+          <div class="bay-op-sec bay-state">
+            <span class="eyebrow">State</span>
+            <div class="truck" id="bayTruck" data-pos="service" role="img" aria-label="VCB truck service, 20 of 20 turns">
+              <div class="truck-head"><span class="ind-label">VCB truck</span><span class="truck-turns" id="metaTruck">SERVICE 20/20</span></div>
+              <div class="truck-track" aria-hidden="true"><i class="truck-rail"></i><i class="truck-tick" style="left:0%"></i><i class="truck-tick minor" style="left:5%"></i><i class="truck-tick minor" style="left:10%"></i><i class="truck-tick minor" style="left:15%"></i><i class="truck-tick minor" style="left:20%"></i><i class="truck-tick minor" style="left:25%"></i><i class="truck-tick minor" style="left:30%"></i><i class="truck-tick minor" style="left:35%"></i><i class="truck-tick minor" style="left:40%"></i><i class="truck-tick minor" style="left:45%"></i><i class="truck-tick" style="left:50%"></i><i class="truck-tick minor" style="left:55%"></i><i class="truck-tick minor" style="left:60%"></i><i class="truck-tick minor" style="left:65%"></i><i class="truck-tick minor" style="left:70%"></i><i class="truck-tick minor" style="left:75%"></i><i class="truck-tick minor" style="left:80%"></i><i class="truck-tick minor" style="left:85%"></i><i class="truck-tick minor" style="left:90%"></i><i class="truck-tick minor" style="left:95%"></i><i class="truck-tick" style="left:100%"></i><i class="truck-stop" style="left:0"></i><i class="truck-stop" style="left:50%"></i><i class="truck-stop" style="left:100%"></i><span class="truck-car" id="bayTruckCar" style="left:0%"><svg class="ic"><use href="#i-truck"/></svg></span></div>
+              <div class="truck-labels" aria-hidden="true"><span data-pos="service">SERVICE 20</span><span data-pos="test">TEST 10</span><span data-pos="disconnected">DISCONNECTED 0</span></div>
+            </div>
+            <div class="ind-row">
+              <div class="ind compact" id="indBreaker" data-s="neutral">
+                <span class="ind-glyph" aria-hidden="true"><svg class="ic"><use href="#i-breaker"/></svg><span class="ind-lock" hidden><svg class="ic"><use href="#i-lock"/></svg></span></span>
+                <span class="ind-label">Breaker</span><strong class="ind-value" id="indBreakerVal">CLOSED [I]</strong>
+              </div>
+              <div class="ind compact" id="indVoltage" data-s="neutral">
+                <span class="ind-glyph" aria-hidden="true"><svg class="ic"><use href="#i-probe"/></svg><span class="ind-lock" hidden><svg class="ic"><use href="#i-lock"/></svg></span></span>
+                <span class="ind-label" id="indVoltageLbl">Voltage</span><strong class="ind-value" id="metaVoltage">6.60 kV · 60.0 Hz</strong>
+              </div>
+              <div class="ind compact" id="indEarth" data-s="neutral">
+                <span class="ind-glyph" aria-hidden="true"><svg class="ic"><use href="#i-earth"/></svg><span class="ind-lock" hidden><svg class="ic"><use href="#i-lock"/></svg></span></span>
+                <span class="ind-label">Earth EK6</span><strong class="ind-value" id="metaEarth">OPEN</strong>
+              </div>
+              <div class="ind compact" id="indPort" data-s="neutral">
+                <span class="ind-glyph" aria-hidden="true"><svg class="ic"><use href="#i-lock"/></svg><span class="ind-lock" hidden><svg class="ic"><use href="#i-lock"/></svg></span></span>
+                <span class="ind-label" id="indPortLbl">Racking port</span><strong class="ind-value" id="indPortVal">UNLOCKED</strong>
+              </div>
+            </div>
+            <div class="bay-load"><span class="ind-label">Current / load</span><span class="num" id="metaCurrent">198 A · 1,800 kW</span></div>
+            <div class="op-row bay-keys" id="bayKeysTags"></div>
           </div>
           <div class="bay-controls" id="bayControls"></div>
           <details class="bay-about">
@@ -3679,48 +3734,12 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
     }
 
     function renderQuickActionHud(cub, topo) {
+      // Retired: every bay action lives in the Bay Operator (#bayControls). The element is
+      // kept empty and hidden so the shipped #quickActionHud spotlight selectors match nothing.
       const hud = document.getElementById('quickActionHud');
       if (!hud) return;
-      const bayVar = BAY_COLOR_VARS[cub.id] || 'var(--accent)';
-      hud.style.setProperty('--bay', bayVar);
-      const ppeBtn = !isFullPPE()
-        ? `<button type="button" class="btn btn-xs btn-primary" data-hud-act="ppe" onclick="document.getElementById('btnEquipAllPPE').click()">Don PPE</button>`
-        : '';
-
-      if (!cub.isHV) {
-        hud.innerHTML = `
-          <span class="qhud-bay-tag" style="--bay:${bayVar};"><span class="qhud-dot"></span>${cub.code} · ${cub.id}</span>
-          ${ppeBtn}
-          <button type="button" class="btn btn-xs btn-danger" data-hud-act="close" onclick="pressCloseVCB('${cub.id}')">Close [I]</button>
-          <button type="button" class="btn btn-xs btn-success" data-hud-act="trip" onclick="pressTripVCB('${cub.id}')">Trip [O]</button>
-          <button type="button" class="btn btn-xs ${cub.rackingPadlocked ? 'btn-success' : ''}" data-hud-act="padlock-port" onclick="toggleRackingPadlock('${cub.id}')">${cub.rackingPadlocked ? 'ACB Locked' : 'Padlock ACB'}</button>
-          <button type="button" class="btn btn-xs ${cub.castellLockedOut ? 'btn-success' : 'btn-primary'}" data-hud-act="castell-vcb" onclick="toggleCastellVCBLock('${cub.id}')">${cub.castellLockedOut ? 'Return K-LV' : 'Extract K-LV'}</button>
-        `;
-        return;
-      }
-
-      const kId = cub.castellKeyId;
-      const volts = cub.id === 'TR1-HV' ? topo.trVolts : topo.btVolts;
-      hud.innerHTML = `
-        <span class="qhud-bay-tag" style="--bay:${bayVar};"><span class="qhud-dot"></span>${cub.code} · ${cub.id} (${cub.rackingTurns}/20)</span>
-        ${ppeBtn}
-        <button type="button" class="btn btn-xs btn-danger" data-hud-act="close" onclick="pressCloseVCB('${cub.id}')">Close [I]</button>
-        <button type="button" class="btn btn-xs btn-success" data-hud-act="trip" onclick="pressTripVCB('${cub.id}')">Trip [O]</button>
-        <button type="button" class="btn btn-xs" data-hud-act="rack-out" onclick="rackVCB('${cub.id}', -10)">Rack -10</button>
-        <button type="button" class="btn btn-xs" data-hud-act="rack-in" onclick="rackVCB('${cub.id}', 10)">Rack +10</button>
-        <button type="button" class="btn btn-xs ${cub.rackingPadlocked ? 'btn-success' : ''}" data-hud-act="padlock-port" onclick="toggleRackingPadlock('${cub.id}')">${cub.rackingPadlocked ? 'Port Locked' : 'Padlock'}</button>
-        ${kId ? `<button type="button" class="btn btn-xs ${cub.castellLockedOut ? 'btn-success' : ''}" data-hud-act="castell-vcb" onclick="toggleCastellVCBLock('${cub.id}')">${cub.castellLockedOut ? `Ret ${kId}` : `Key ${kId}`}</button>` : ''}
-        <span class="qhud-sep"></span>
-        <button type="button" class="btn btn-xs ${cub.earthSwitchClosed ? 'btn-earth' : 'btn-primary'}" data-hud-act="earth-sw" onclick="toggleIntegralEarthSwitch('${cub.id}')">${cub.earthSwitchClosed ? 'Open Earth' : 'Close Earth'}</button>
-        <button type="button" class="btn btn-xs ${cub.earthPadlocked ? 'btn-success' : ''}" data-hud-act="earth-padlock" onclick="toggleEarthPadlock('${cub.id}')">${cub.earthPadlocked ? 'E-Locked' : 'Lock Earth'}</button>
-        <button type="button" class="btn btn-xs ${cub.doorOpen ? 'btn-primary' : ''}" data-hud-act="door" onclick="toggleDoor3D('${cub.id}')">${cub.doorOpen ? 'Close Door' : 'Open Door'}</button>
-        ${cub.doorOpen ? `
-          <button type="button" class="btn btn-xs ${cub.topShutterPadlocked ? 'btn-success' : 'btn-danger'}" data-hud-act="shutter" onclick="toggleShutterPadlock('${cub.id}')">${cub.topShutterPadlocked ? 'Shutter Locked' : 'Lock Shutter'}</button>
-          <button type="button" class="btn btn-xs btn-primary" data-hud-act="prove" onclick="proveTesterOnUnit()">Prove Wand</button>
-          <button type="button" class="btn btn-xs ${cub.cme.pe ? 'btn-success' : ''}" data-hud-act="term-pe" onclick="interactTerminal('${cub.id}', 'PE')">PE</button>
-          ${['L1', 'L2', 'L3'].map(p => `<button type="button" class="btn btn-xs ${cub.cme[p] ? 'btn-success' : volts > 0 ? 'btn-danger' : ''}" data-hud-act="term-${p}" onclick="interactTerminal('${cub.id}', '${p}')">${p}</button>`).join('')}
-        ` : ''}
-      `;
+      hud.innerHTML = '';
+      hud.hidden = true;
     }
 
     function applyStepSpotlights() {
@@ -3736,7 +3755,7 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
       };
 
       // Highlight the active step's quick-execute button in the LOTO checklist
-      addSpot('#lotoStepsList .loto-step-card.active-step .step-action-bar .btn');
+      addSpot('#lotoStepsList .st.current .st-act .btn');
 
       // Highlight specific controls for the active mission & step
       if (currentIdx === 0) {
@@ -3785,90 +3804,136 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
       }
     }
 
-    /* 5B. RIGHT-SIDEBAR BAY OPERATOR CONTROLS */
+    /* 5B. BAY OPERATOR — the single home for every bay operation and its state.
+       Buttons keep the shipped onclick handlers and gain data-hud-act values. */
+    function bayOpBtn(label, onclick, { act = '', variant = '', icon = '', size = 'sm' } = {}) {
+      const cls = ['btn', size && `btn-${size}`, variant && `btn-${variant}`].filter(Boolean).join(' ');
+      return `<button type="button" class="${cls}"${act ? ` data-hud-act="${act}"` : ''} onclick="${onclick}">${icon ? `<svg class="ic"><use href="#i-${icon}"/></svg>` : ''}${label}</button>`;
+    }
+    function bayOpPush(kind, cubId) {
+      const close = kind === 'close';
+      return `<button type="button" class="btn ${close ? 'btn-close' : 'btn-trip'}" data-hud-act="${close ? 'close' : 'trip'}" onclick="${close ? 'pressCloseVCB' : 'pressTripVCB'}('${cubId}')"><span class="pb-glyph" aria-hidden="true">${close ? 'I' : 'O'}</span>${close ? 'Close' : 'Trip'}<span class="sr-only"> ${close ? '[I]' : '[O]'}</span></button>`;
+    }
+    function keyChipHtml(k) {
+      const loc = SIM.keys[k];
+      const at = loc === 'HAND' ? 'hand' : loc === 'EARTH_SWITCH' ? 'earth' : 'vcb';
+      const where = at === 'hand' ? 'in hand' : at === 'earth' ? 'in EK6' : 'in VCB';
+      return `<span class="key-tag${at === 'hand' ? ' in-hand' : ''}" data-at="${at}"><svg class="ic"><use href="#i-key"/></svg>${k}<span class="key-where">${where}</span></span>`;
+    }
+    function setInd(id, state, locked) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.dataset.s = state;
+      const lock = el.querySelector('.ind-lock');
+      if (lock) lock.hidden = !locked;
+    }
+
     function renderBayControls(cub, topo) {
       const box = document.getElementById('bayControls');
       if (!box) return;
+      const id = cub.id;
+      const volts = id === 'TR1-HV' ? topo.trVolts : topo.btVolts;
+      const isLive = (id === 'BT-M1' && topo.btVolts > 0) || (id === 'TR1-HV' && topo.trVolts > 0) ||
+        (id === 'DG1' && topo.portLive) || (id === 'BT1' && topo.stbdLive) || (id === 'ACB-TR1-LV' && cub.vcbClosed);
+      const proven = Boolean(SIM.ptp.completedCubicles[id]);
+      const proving = !proven && SIM.ptp.state > 0 && SIM.ptp.targetCubicle === id;
 
-      const flagsHtml = `
-        <div class="ctl-flags">
-          <span class="state-flag ${cub.vcbClosed ? 'red' : 'green'}">${cub.vcbClosed ? 'CLOSED [I]' : 'OPEN [O]'}</span>
-          ${cub.isHV ? `<span class="state-flag ${cub.earthSwitchClosed ? 'earth' : 'neutral'}">${cub.earthSwitchClosed ? 'EK6 EARTHED' : 'UNEARTHED'}</span>` : ''}
-          ${cub.tags.danger ? '<span class="safety-tag-badge danger">DANGER TAG</span>' : ''}
-          ${cub.tags.earth ? '<span class="safety-tag-badge earth">EARTH TAG</span>' : ''}
-          ${cub.tags.sft ? '<span class="safety-tag-badge sft">SFT TAG</span>' : ''}
-        </div>
-      `;
+      // Bay head colour and status flag (render() writes the word; this sets the treatment)
+      const op = document.getElementById('bayOperator');
+      if (op) op.style.setProperty('--bay', BAY_COLOR_VARS[id] || 'var(--accent)');
+      const badge = document.getElementById('inspStatusBadge');
+      if (badge) {
+        const word = badge.textContent;
+        badge.className = word === 'LIVE' ? 'state-flag solid red' : word === 'EARTHED' ? 'state-flag earth' : 'state-flag solid green';
+        badge.innerHTML = `<svg class="ic"><use href="#i-${word === 'LIVE' ? 'bolt' : word === 'EARTHED' ? 'earth' : 'check'}"/></svg>${word}`;
+      }
 
+      // PPE banner (Don all is the shipped #btnEquipAllPPE)
+      const ppe = document.getElementById('bayPpeBanner');
+      if (ppe) {
+        const n = [SIM.ppe.suit, SIM.ppe.gloves && SIM.ppe.glovesAirTested, SIM.ppe.bootsMat].filter(Boolean).length;
+        ppe.hidden = isFullPPE();
+        document.getElementById('bayPpeCount').textContent = `PPE ${n}/3 donned`;
+      }
+
+      // State indicators
+      const truck = document.getElementById('bayTruck');
+      if (truck) {
+        truck.hidden = !cub.isHV;
+        const t = cub.rackingTurns;
+        const pos = t === 20 ? 'service' : t === 10 ? 'test' : t === 0 ? 'disconnected' : 'mid';
+        truck.dataset.pos = pos;
+        truck.setAttribute('aria-label', `VCB truck ${pos === 'mid' ? 'in travel' : pos}, ${t} of 20 turns`);
+        document.getElementById('bayTruckCar').style.left = `${((20 - t) / 20) * 100}%`;
+        truck.querySelectorAll('.truck-labels span').forEach((s) => s.classList.toggle('on', s.dataset.pos === pos));
+      }
+      setInd('indBreaker', cub.vcbClosed ? 'live' : 'safe', !cub.isHV && cub.rackingPadlocked);
+      document.getElementById('indBreakerVal').textContent = cub.vcbClosed ? 'CLOSED [I]' : 'OPEN [O]';
+      setInd('indVoltage', isLive ? 'live' : proven ? 'safe' : proving ? 'test' : 'neutral', false);
+      document.getElementById('indVoltageLbl').textContent = isLive ? 'Voltage · LIVE' : proven ? 'Voltage · PROVEN DEAD' : proving ? 'Voltage · PROVING' : 'Voltage · NOT PROVEN';
+      const earthInd = document.getElementById('indEarth');
+      if (earthInd) earthInd.hidden = !cub.isHV;
+      setInd('indEarth', cub.earthSwitchClosed ? 'earth' : 'neutral', cub.earthPadlocked);
+      setInd('indPort', cub.rackingPadlocked ? 'safe' : 'neutral', cub.rackingPadlocked);
+      document.getElementById('indPortLbl').textContent = cub.isHV ? 'Racking port' : 'ACB lockout';
+      document.getElementById('indPortVal').textContent = cub.rackingPadlocked ? 'PADLOCKED' : 'UNLOCKED';
+      const keys = [...new Set([cub.castellKeyId, ...(cub.requiredEarthKeys || [])].filter(Boolean))];
+      const tags = [
+        cub.tags.danger ? '<span class="safety-tag-badge danger"><svg class="ic"><use href="#i-tag"/></svg>DANGER TAG</span>' : '',
+        cub.tags.earth ? '<span class="safety-tag-badge earth"><svg class="ic"><use href="#i-tag"/></svg>EARTH TAG</span>' : '',
+        cub.tags.sft ? '<span class="safety-tag-badge sft"><svg class="ic"><use href="#i-tag"/></svg>SFT TAG</span>' : ''
+      ].join('');
+      document.getElementById('bayKeysTags').innerHTML = keys.map(keyChipHtml).join('') + tags;
+
+      // Actions
       if (!cub.isHV) {
         box.innerHTML = `
-          <div class="section-title-row">
-            <span class="eyebrow">Bay Operator Controls · 440 V Secondary</span>
-          </div>
-          ${flagsHtml}
-          <div class="ctl-row">
-            <span class="ctl-label">Breaker</span>
-            <button type="button" class="btn btn-xs btn-danger" onclick="pressCloseVCB('${cub.id}')">Close [I]</button>
-            <button type="button" class="btn btn-xs btn-success" onclick="pressTripVCB('${cub.id}')">Trip [O]</button>
-          </div>
-          <div class="ctl-row">
-            <span class="ctl-label">Lockout</span>
-            <button type="button" class="btn btn-xs ${cub.rackingPadlocked ? 'btn-success' : ''}" onclick="toggleRackingPadlock('${cub.id}')">${cub.rackingPadlocked ? 'ACB Padlocked' : 'Padlock ACB'}</button>
-            <button type="button" class="btn btn-xs ${cub.castellLockedOut ? 'btn-success' : 'btn-primary'}" onclick="toggleCastellVCBLock('${cub.id}')">${cub.castellLockedOut ? 'Return K-LV' : 'Extract K-LV'}</button>
-          </div>
-        `;
+          <div class="bay-op-sec"><span class="eyebrow">Breaker <span class="num">440 V ACB</span></span>
+            <div class="op-row">${bayOpPush('close', id)}${bayOpPush('trip', id)}</div></div>
+          <div class="bay-op-sec"><span class="eyebrow">Lockout</span>
+            <div class="op-row">
+              ${bayOpBtn(cub.rackingPadlocked ? 'Remove ACB padlock' : 'Padlock ACB', `toggleRackingPadlock('${id}')`, { act: 'padlock-port', icon: 'lock', variant: cub.rackingPadlocked ? 'success' : '' })}
+              ${bayOpBtn(cub.castellLockedOut ? 'Return K-LV' : 'Extract K-LV', `toggleCastellVCBLock('${id}')`, { act: 'castell-vcb', icon: 'key', variant: cub.castellLockedOut ? 'success' : '' })}
+            </div></div>`;
         return;
       }
 
       const kId = cub.castellKeyId;
       const reqKeys = cub.requiredEarthKeys || [];
-      const volts = cub.id === 'TR1-HV' ? topo.trVolts : topo.btVolts;
-
       box.innerHTML = `
-        <div class="section-title-row">
-          <span class="eyebrow">Bay Operator Controls · ${cub.code}</span>
-          <span class="num" style="font-size:11.5px;color:var(--text-3);">${cub.rackingTurns}/20 turns</span>
-        </div>
-        ${flagsHtml}
-        <div class="ctl-row">
-          <span class="ctl-label">VCB</span>
-          <button type="button" class="btn btn-xs btn-danger" onclick="pressCloseVCB('${cub.id}')">Close [I]</button>
-          <button type="button" class="btn btn-xs btn-success" onclick="pressTripVCB('${cub.id}')">Trip [O]</button>
-          <button type="button" class="btn btn-xs ${cub.doorOpen ? 'btn-primary' : ''}" onclick="toggleDoor3D('${cub.id}')">${cub.doorOpen ? 'Close Door' : 'Open Door'}</button>
-        </div>
-        <div class="ctl-row">
-          <span class="ctl-label">Racking</span>
-          <button type="button" class="btn btn-xs" onclick="rackVCB('${cub.id}', -10)">-10 Out</button>
-          <button type="button" class="btn btn-xs" onclick="rackVCB('${cub.id}', 10)">+10 In</button>
-          <button type="button" class="btn btn-xs ${cub.rackingPadlocked ? 'btn-success' : ''}" onclick="toggleRackingPadlock('${cub.id}')">${cub.rackingPadlocked ? 'Port Locked' : 'Padlock Port'}</button>
-          ${kId ? `<button type="button" class="btn btn-xs ${cub.castellLockedOut ? 'btn-success' : ''}" onclick="toggleCastellVCBLock('${cub.id}')">${cub.castellLockedOut ? `Return ${kId}` : `Extract ${kId}`}</button>` : ''}
-        </div>
-        <div class="ctl-row">
-          <span class="ctl-label">Earth EK6</span>
-          ${reqKeys.map(rk => {
-            const ins = cub.earthKeysInserted.includes(rk);
-            return `<button type="button" class="btn btn-xs ${ins ? 'btn-success' : ''}" onclick="toggleEarthSwitchKey('${cub.id}', '${rk}')">${ins ? `${rk} In` : `Insert ${rk}`}</button>`;
-          }).join('')}
-          <button type="button" class="btn btn-xs ${cub.earthSwitchClosed ? 'btn-earth' : 'btn-primary'}" onclick="toggleIntegralEarthSwitch('${cub.id}')">${cub.earthSwitchClosed ? 'Open Earth' : 'Close Earth'}</button>
-          <button type="button" class="btn btn-xs ${cub.earthPadlocked ? 'btn-success' : ''}" onclick="toggleEarthPadlock('${cub.id}')">${cub.earthPadlocked ? 'Earth Locked' : 'Padlock'}</button>
-        </div>
-        ${cub.doorOpen ? `
-          <div class="ctl-row">
-            <span class="ctl-label">Compartment</span>
-            <button type="button" class="btn btn-xs ${cub.topShutterPadlocked ? 'btn-success' : 'btn-danger'}" onclick="toggleShutterPadlock('${cub.id}')">${cub.topShutterPadlocked ? 'Red Shutter Locked' : 'Lock Red Shutter'}</button>
-            <button type="button" class="btn btn-xs btn-primary" onclick="proveTesterOnUnit()">Prove Wand</button>
+        <div class="bay-op-sec"><span class="eyebrow">Breaker <span class="num">VCB · ${cub.code}</span></span>
+          <div class="op-row">${bayOpPush('close', id)}${bayOpPush('trip', id)}</div></div>
+        <div class="bay-op-sec"><span class="eyebrow">Racking &amp; lockout <span class="num">${cub.rackingTurns}/20 turns</span></span>
+          <div class="op-row">
+            ${bayOpBtn('Rack out −10', `rackVCB('${id}', -10)`, { act: 'rack-out' })}
+            ${bayOpBtn('Rack in +10', `rackVCB('${id}', 10)`, { act: 'rack-in' })}
           </div>
-          <div class="ctl-row">
-            <span class="ctl-label">Terminals</span>
-            <button type="button" class="btn btn-xs ${cub.cme.pe ? 'btn-success' : ''}" onclick="interactTerminal('${cub.id}', 'PE')">PE${cub.cme.pe ? ' · CME' : ''}</button>
-            ${['L1', 'L2', 'L3'].map(p => `
-              <button type="button" class="btn btn-xs ${cub.cme[p] ? 'btn-success' : volts > 0 ? 'btn-danger' : ''}" onclick="interactTerminal('${cub.id}', '${p}')">
-                ${p}${cub.cme[p] ? ' · E' : SIM.ptp.phasesTested[p] ? ' · 0V' : ''}
-              </button>
-            `).join('')}
+          <div class="op-row">
+            ${bayOpBtn(cub.rackingPadlocked ? 'Remove port padlock' : 'Padlock port', `toggleRackingPadlock('${id}')`, { act: 'padlock-port', icon: 'lock', variant: cub.rackingPadlocked ? 'success' : '' })}
+            ${kId ? bayOpBtn(cub.castellLockedOut ? `Return ${kId}` : `Extract ${kId}`, `toggleCastellVCBLock('${id}')`, { act: 'castell-vcb', icon: 'key', variant: cub.castellLockedOut ? 'success' : '' }) : ''}
+          </div></div>
+        <div class="bay-op-sec"><span class="eyebrow">Earth switch EK6</span>
+          <div class="op-row">
+            ${reqKeys.map((rk) => {
+              const ins = cub.earthKeysInserted.includes(rk);
+              return bayOpBtn(ins ? `${rk} inserted` : `Insert ${rk}`, `toggleEarthSwitchKey('${id}', '${rk}')`, { act: 'earth-key', icon: 'key', variant: ins ? 'success' : '' });
+            }).join('')}
+            ${bayOpBtn(cub.earthSwitchClosed ? 'Open earth' : 'Close earth', `toggleIntegralEarthSwitch('${id}')`, { act: 'earth-sw', icon: 'earth', variant: cub.earthSwitchClosed ? 'earth' : '' })}
+            ${bayOpBtn(cub.earthPadlocked ? 'Earth locked' : 'Padlock earth', `toggleEarthPadlock('${id}')`, { act: 'earth-padlock', icon: 'lock', variant: cub.earthPadlocked ? 'success' : '' })}
+          </div></div>
+        <div class="bay-op-sec"><span class="eyebrow">Compartment</span>
+          <div class="op-row">
+            ${bayOpBtn(cub.doorOpen ? 'Close door' : 'Open door', `toggleDoor3D('${id}')`, { act: 'door', icon: 'door', variant: cub.doorOpen ? 'primary' : '' })}
+            ${cub.doorOpen ? bayOpBtn(cub.topShutterPadlocked ? 'Red shutter locked' : 'Lock red shutter', `toggleShutterPadlock('${id}')`, { act: 'shutter', icon: 'shutter', variant: cub.topShutterPadlocked ? 'success' : 'danger' }) : ''}
+            ${cub.doorOpen ? bayOpBtn('Prove wand', 'proveTesterOnUnit()', { act: 'prove', icon: 'probe' }) : ''}
           </div>
-        ` : ''}
-      `;
+          ${cub.doorOpen ? `
+          <span class="eyebrow">Terminals</span>
+          <div class="op-row terminals">
+            ${bayOpBtn(`PE${cub.cme.pe ? ' · CME' : ''}`, `interactTerminal('${id}', 'PE')`, { act: 'term-pe', variant: cub.cme.pe ? 'success' : '' })}
+            ${['L1', 'L2', 'L3'].map((p) => bayOpBtn(`${p}${cub.cme[p] ? ' · E' : SIM.ptp.phasesTested[p] ? ' · 0V' : ''}`, `interactTerminal('${id}', '${p}')`, { act: `term-${p}`, variant: cub.cme[p] ? 'success' : volts > 0 ? 'danger' : '' })).join('')}
+          </div>` : ''}
+        </div>`;
     }
 
     /* 5C. 2.5D FACEPLATE, INTERNAL COMPARTMENT & SINGLE-LINE DIAGRAM (LIGHT CHART-ROOM THEME) */
@@ -4148,26 +4213,34 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
       const steps = getLotoSteps();
       const doneCount = steps.filter(s => s.done).length;
       const currentIdx = steps.findIndex(s => !s.done);
+      const exam = SIM.mode === 'EXAM';
 
       document.getElementById('lotoPtwCode').textContent = `PTW-HV-6600-0${SIM.missionId}A · Step ${doneCount} of ${steps.length}`;
       const prog = document.getElementById('lotoProgressBar');
       if (prog) prog.style.width = `${Math.round((doneCount / steps.length) * 100)}%`;
 
+      // Stepper: done → current (expanded, quick action spotlit in Training) → pending.
+      // Exam / CoC shows completed steps only, then the step number with no hints.
       container.innerHTML = steps.map((s, idx) => {
         const isCurrent = idx === currentIdx;
-        const cls = s.done ? 'completed-step' : (isCurrent ? 'active-step' : '');
+        const st = s.done ? 'done' : (isCurrent ? 'current' : 'pending');
+        if (exam && !s.done) {
+          return isCurrent ? `
+            <div class="st hidden-exam" aria-current="step">
+              <span class="st-mark">${idx + 1}</span>
+              <span class="st-title">Step ${idx + 1} of ${steps.length}</span>
+              <span class="st-rule">No hints in Exam / CoC</span>
+            </div>` : '';
+        }
         return `
-          <div class="loto-step-card ${cls}">
-            <div class="step-header">
-              <div class="step-number-circle">${s.done ? '<svg class="ic"><use href="#i-check"/></svg>' : idx + 1}</div>
-              <span class="step-title-text">${s.title}</span>
-            </div>
-            <div class="step-desc">${s.desc}</div>
+          <div class="st ${st}"${isCurrent ? ' aria-current="step"' : ''}>
+            <span class="st-mark">${s.done ? '<svg class="ic"><use href="#i-check"/></svg>' : idx + 1}</span>
+            <span class="st-title">${s.title}</span>
+            ${isCurrent ? `<span class="st-desc">${s.desc}</span>` : ''}
             ${!s.done ? `
-              <div class="step-action-bar">
-                <button type="button" class="btn btn-sm btn-primary" onclick="executeLotoStep(${idx})">${s.actionText}</button>
-              </div>
-            ` : ''}
+              <span class="st-act">
+                <button type="button" class="btn btn-sm ${isCurrent ? 'btn-primary' : 'btn-quiet'}" onclick="executeLotoStep(${idx})">${s.actionText}</button>
+              </span>` : ''}
           </div>
         `;
       }).join('');
