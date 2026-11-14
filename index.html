@@ -1303,6 +1303,11 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
     .st.pending .st-act { margin-top: 2px; }
     .exam-mode .st .st-act { display: none; }
 
+    /* Interlock reason tooltip (fixed, so it escapes the scrolling operator column) */
+    #interlockTip { position: fixed; z-index: var(--z-tooltip); max-width: 360px; }
+    #interlockTip[hidden] { display: none; }
+    .btn.is-interlocked.btn-close .pb-glyph, .btn.is-interlocked.btn-trip .pb-glyph { border-color: currentColor; }
+
   </style>
 </head>
 <body>
@@ -1789,6 +1794,8 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
       </div>
     </div>
   </div>
+
+  <div class="tip tip-lock" id="interlockTip" role="tooltip" hidden></div>
 
   <!-- DIALOGS -->
   <dialog id="manualDialog" closedby="any" aria-labelledby="manualTitle">
@@ -3895,6 +3902,7 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
               ${bayOpBtn(cub.rackingPadlocked ? 'Remove ACB padlock' : 'Padlock ACB', `toggleRackingPadlock('${id}')`, { act: 'padlock-port', icon: 'lock', variant: cub.rackingPadlocked ? 'success' : '' })}
               ${bayOpBtn(cub.castellLockedOut ? 'Return K-LV' : 'Extract K-LV', `toggleCastellVCBLock('${id}')`, { act: 'castell-vcb', icon: 'key', variant: cub.castellLockedOut ? 'success' : '' })}
             </div></div>`;
+        applyInterlockHints(cub);
         return;
       }
 
@@ -3934,6 +3942,137 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
             ${['L1', 'L2', 'L3'].map((p) => bayOpBtn(`${p}${cub.cme[p] ? ' · E' : SIM.ptp.phasesTested[p] ? ' · 0V' : ''}`, `interactTerminal('${id}', '${p}')`, { act: `term-${p}`, variant: cub.cme[p] ? 'success' : volts > 0 ? 'danger' : '' })).join('')}
           </div>` : ''}
         </div>`;
+      applyInterlockHints(cub);
+    }
+
+    /* 5B-2. INTERLOCK PREDICTION (Training only, read-only).
+       Mirrors, in the same order, the checks the operation functions run before they call
+       triggerViolation(), and reuses their titles and reasons word for word. It never blocks
+       anything: an interlocked control stays clickable and the shipped interlock still fires. */
+    const PPE_ACTION = {
+      close: 'Close Circuit Breaker', trip: 'Trip Circuit Breaker', 'rack-out': 'Rack VCB Truck', 'rack-in': 'Rack VCB Truck',
+      'padlock-port': 'Apply/Remove Padlock', 'castell-vcb': 'Operate Castell Interlock', 'earth-key': 'Castell Key Transfer',
+      'earth-sw': 'Operate Earth Switch', 'earth-padlock': 'Padlock Earth Switch', door: 'Open Enclosure Door',
+      shutter: 'Padlock Red Busbar Shutter', prove: 'Prove HV Tester'
+    };
+    function interlockFor(act, cub, arg) {
+      const id = cub.id;
+      const topo = getTopology();
+      const T1 = (title, reason, fix = []) => ({ tier: 1, title, reason, fix });
+      const T2 = (title, reason, fix = []) => ({ tier: 2, title, reason, fix });
+      const fx = (label, onclick, fixAct, fixArg) => ({ label, onclick, act: fixAct, arg: fixArg });
+      const term = act && act.startsWith('term-') ? (act === 'term-pe' ? 'PE' : act.slice(5)) : null;
+      const ppeAction = term ? `Interact with ${term}` : (act === 'door' && cub.doorOpen ? null : PPE_ACTION[act]);
+      if (ppeAction) {
+        if (!SIM.ppe.glovesAirTested && SIM.ppe.gloves) return T1('HV Gloves Donned Without Roll Air-Test', 'STCW requires pneumatic roll testing for pinholes prior to donning.', [fx('Air-test gloves', "document.getElementById('btnRollTest').click()")]);
+        if (!isFullPPE()) return T1(`Incomplete PPE for ${ppeAction}`, '40 cal/cm² arc-flash suit, air-tested Class 2 gloves, and dielectric boots/mat must be equipped.', [fx('Don all PPE', "document.getElementById('btnEquipAllPPE').click()")]);
+      }
+      const kId = cub.castellKeyId;
+      switch (act) {
+        case 'close':
+          if (cub.vcbClosed) return null;
+          if (cub.isHV) {
+            if (cub.rackingTurns !== 20 && cub.rackingTurns !== 10) return T1('Cannot Close VCB in Mid-Travel or Disconnected Position', 'VCB must be in SERVICE (20) or TEST (10) position.', [fx('Rack in +10', `rackVCB('${id}', 10)`, 'rack-in')]);
+            if (cub.earthSwitchClosed) return T2('Cannot Close VCB on Closed Earth Switch', 'Closing a 6.6 kV breaker onto a closed earth switch creates a 40 kA bolted 3-phase short-circuit fault; mechanical interlock blocked closure.', [fx('Open earth', `toggleIntegralEarthSwitch('${id}')`, 'earth-sw')]);
+            if (cub.castellLockedOut) return T1('VCB Locked Out by Castell Key', 'Return and unlock Castell key before closing.', [fx(`Return ${kId}`, `toggleCastellVCBLock('${id}')`, 'castell-vcb')]);
+          } else if (cub.rackingPadlocked || cub.castellLockedOut) {
+            return T1('ACB-TR1-LV Padlocked or Locked Out', 'Remove LOTO padlock and Castell lock before closing.');
+          }
+          return null;
+        case 'rack-out': case 'rack-in':
+          if (!cub.isHV) return null;
+          if (cub.vcbClosed) return T2('Live Racking Prevention Interlock Engaged', 'Attempting to rack a CLOSED 6.6 kV breaker draws a lethal open-air plasma arc across the primary tulip spouts. Trip VCB OPEN [O] first.', [fx('Trip [O]', `pressTripVCB('${id}')`, 'trip')]);
+          if (cub.rackingPadlocked) return T1('Racking Port Padlocked', 'Remove LOTO padlock from racking shutter first.', [fx('Remove port padlock', `toggleRackingPadlock('${id}')`, 'padlock-port')]);
+          if (cub.castellLockedOut) return T1('VCB Castell Key Extracted', 'Return Castell key to VCB before racking in.', [fx(`Return ${kId}`, `toggleCastellVCBLock('${id}')`, 'castell-vcb')]);
+          return null;
+        case 'castell-vcb':
+          if (!kId) return null;
+          if (!cub.castellLockedOut) {
+            if (cub.isHV && (cub.vcbClosed || cub.rackingTurns !== 0)) return T1('Castell Key Trapped in VCB', 'VCB must be OPEN and at DISCONNECTED (0/20) to release key.', cub.vcbClosed ? [fx('Trip [O]', `pressTripVCB('${id}')`, 'trip')] : [fx('Rack out −10', `rackVCB('${id}', -10)`, 'rack-out')]);
+            if (!cub.isHV && cub.vcbClosed) return T1('Castell Key Trapped in ACB', '440 V ACB must be OPEN [O] to release K-LV.', [fx('Trip [O]', `pressTripVCB('${id}')`, 'trip')]);
+          } else if (SIM.keys[kId] !== 'HAND') {
+            return T1('Key Not in Hand', `Key ${kId} is currently at ${SIM.keys[kId]}. Extract from Earth Switch first.`, SIM.keys[kId] === 'EARTH_SWITCH' ? [fx(`Extract ${kId} from EK6`, `toggleEarthSwitchKey('${id}', '${kId}')`, 'earth-key', kId)] : []);
+          }
+          return null;
+        case 'earth-key': {
+          const k = arg;
+          if (!cub.earthKeysInserted.includes(k)) {
+            if (SIM.keys[k] !== 'HAND') return T1('Key Not in Hand', `Castell key ${k} is at ${SIM.keys[k] || 'VCB'}. Extract it first.`, k === kId && !cub.castellLockedOut ? [fx(`Extract ${k}`, `toggleCastellVCBLock('${id}')`, 'castell-vcb')] : []);
+          } else if (cub.earthSwitchClosed) {
+            return T1('Key Trapped in Closed Earth Switch', 'Open Integral Earth Switch before extracting key.', [fx('Open earth', `toggleIntegralEarthSwitch('${id}')`, 'earth-sw')]);
+          }
+          return null;
+        }
+        case 'earth-sw':
+          if (!cub.isHV) return null;
+          if (!cub.earthSwitchClosed) {
+            if (cub.vcbClosed || cub.rackingTurns !== 0) return T2('Cannot Earth Non-Disconnected Breaker Slot', 'Closing an earth switch while the 6.6 kV breaker is in-slot causes a 3-phase busbar earth fault. Rack VCB out to DISCONNECTED (0/20) first.', cub.vcbClosed ? [fx('Trip [O]', `pressTripVCB('${id}')`, 'trip')] : [fx('Rack out −10', `rackVCB('${id}', -10)`, 'rack-out')]);
+            const missing = (cub.requiredEarthKeys || []).filter(k => !cub.earthKeysInserted.includes(k) && SIM.keys[k] !== 'HAND');
+            if (missing.length) return T1('Missing Castell Key(s) for Earth Switch', `Requires [${missing.join(', ')}] inserted in cylinder.`);
+          } else if (cub.earthPadlocked) {
+            return T1('Earth Switch Padlocked', 'Remove earth switch padlock before opening.', [fx('Remove earth padlock', `toggleEarthPadlock('${id}')`, 'earth-padlock')]);
+          }
+          return null;
+        case 'door':
+          if (!cub.isHV || cub.doorOpen) return null;
+          if (cub.rackingTurns !== 0) {
+            const tier2 = cub.vcbClosed;
+            const r = 'Opening an energized HV compartment while VCB is in SERVICE/TEST exposes personnel to 6.6 kV arc-flash. Rack VCB to DISCONNECTED (0/20) first.';
+            return tier2 ? T2('Door Interlocked: VCB In-Slot', r, [fx('Trip [O]', `pressTripVCB('${id}')`, 'trip')]) : T1('Door Interlocked: VCB In-Slot', r, [fx('Rack out −10', `rackVCB('${id}', -10)`, 'rack-out')]);
+          }
+          if (!cub.earthSwitchClosed && !cub.sftDoorBypass && !SIM.sft.active) return T2('Door Interlocked: Earth Switch Open', 'Opening an unearthed 6.6 kV compartment exposes operator to lethal capacitive or back-fed voltage. Close Integral Earth Switch first.', [fx('Close earth', `toggleIntegralEarthSwitch('${id}')`, 'earth-sw')]);
+          return null;
+        default:
+          break;
+      }
+      if (term) {
+        const volts = id === 'TR1-HV' ? topo.trVolts : topo.btVolts;
+        if (SIM.activeTool === 'HV_TESTER' && term !== 'PE') {
+          if (volts > 0) return T2(`LIVE VOLTAGE DETECTED ON ${id} ${term}`, `Feeder is still energized at ${volts} V (check upstream VCB, 440 V step-up back-feed, or stored Megger DC charge)!`);
+          if (SIM.ptp.state === 0) return T1('Probed Phase Before Proving Wand', 'Always prove the 6.6 kV wand on a known proving unit before testing.', [fx('Prove wand', 'proveTesterOnUnit()', 'prove')]);
+        }
+        if (SIM.activeTool === 'PORTABLE_EARTH') {
+          if (volts > 0) return T2(`Arc-Flash: Applied Portable Earth to Live Terminal (${volts} V)`, 'Catastrophic short-circuit.');
+          if (term === 'PE' && cub.cme.pe && (cub.cme.L1 || cub.cme.L2 || cub.cme.L3)) return T1('Removed PE Earth Clamp While Phase Clamps Attached', 'Remove L1, L2, L3 phase clamps first, and PE last.');
+          if (term !== 'PE' && !cub.cme[term] && !cub.cme.pe) return T1('Applied Phase Clamp Before PE Earth Clamp', 'Connect PE hull earth clamp first so lead is grounded.', [fx('PE clamp', `interactTerminal('${id}', 'PE')`, 'term-pe')]);
+        }
+      }
+      return null;
+    }
+
+    function applyInterlockHints(cub) {
+      const training = SIM.mode === 'TRAIN';
+      document.querySelectorAll('.is-interlocked').forEach(el => {
+        el.classList.remove('is-interlocked', 'tier-2');
+        el.removeAttribute('aria-describedby');
+        delete el.dataset.lock;
+      });
+      if (!training) return;
+      const mark = (el, info) => {
+        if (!el || !info) return;
+        // a fix is offered only when the fix itself would not trip an interlock
+        info.fix = (info.fix || []).filter(f => !f.act || !interlockFor(f.act, cub, f.arg));
+        el.classList.add('is-interlocked');
+        if (info.tier === 2) el.classList.add('tier-2');
+        el.setAttribute('aria-describedby', 'interlockTip');
+        el.dataset.lock = JSON.stringify(info);
+      };
+      document.querySelectorAll('#bayControls [data-hud-act]').forEach(el => {
+        const act = el.dataset.hudAct;
+        const arg = act === 'earth-key' ? (el.getAttribute('onclick').match(/'([^']+)'\)$/) || [])[1] : undefined;
+        mark(el, interlockFor(act, cub, arg));
+      });
+      // Gloves: the shipped Don listener blocks donning before the air-test
+      if (!SIM.ppe.glovesAirTested && !SIM.ppe.gloves) {
+        mark(document.getElementById('btnDonGloves'), { tier: 1, title: 'Donned Gloves Without Air-Test', reason: 'Perform pneumatic roll air-test first.', fix: [{ label: 'Air-test', onclick: "document.getElementById('btnRollTest').click()" }] });
+      }
+      // Megger run: same order as runMegger()
+      const topo = getTopology();
+      const runBtn = document.getElementById('btnExecuteMeggerTest');
+      if (!isFullPPE()) mark(runBtn, { tier: 1, title: 'Incomplete PPE for Run 5 kV Megger Test', reason: '40 cal/cm² arc-flash suit, air-tested Class 2 gloves, and dielectric boots/mat must be equipped.', fix: [{ label: 'Don all PPE', onclick: "document.getElementById('btnEquipAllPPE').click()" }] });
+      else if (topo.btVolts > 0 && SIM.megger.windingChargeVolts === 0) mark(runBtn, { tier: 2, title: 'Arc-Flash: 5 kV Megger Injected into Live 6.6 kV Feeder', reason: 'Injecting 5 kV DC Megger leads onto an energized 6,600 V AC feeder destroys the instrument and causes a catastrophic arc-flash.' });
+      else if (SIM.ptw.active && !SIM.sft.active) mark(runBtn, { tier: 1, title: '5 kV Megger Blocked: PTW Active Without Sanction-for-Test', reason: 'Cancel the Permit-to-Work and issue a Sanction-for-Test (SFT) before injecting 5,000 V DC.', fix: [{ label: 'Open permit', onclick: "document.getElementById('btnFullPtwView').click()" }] });
+      else if (!SIM.megger.connectedCubicle) mark(runBtn, { tier: 1, title: 'Megger Test Leads Not Connected', reason: 'Connect 5 kV Megger test leads to Phase L1 and PE before running the insulation test.', fix: [{ label: 'Connect leads', onclick: "document.getElementById('btnConnectMeggerLeads').click()" }] });
     }
 
     /* 5C. 2.5D FACEPLATE, INTERNAL COMPARTMENT & SINGLE-LINE DIAGRAM (LIGHT CHART-ROOM THEME) */
@@ -4689,6 +4828,70 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
         help.querySelectorAll('.help-tab-btn').forEach((t) => t.addEventListener('click', () => {
           if (helpSearch.value) { helpSearch.value = ''; helpSearch.dispatchEvent(new Event('input')); paneBefore = null; t.click(); }
         }));
+
+        // Interlock reason tooltip: hover (300 ms), keyboard focus (immediate), first tap on touch.
+        // Content comes from the interlocked control's data-lock (set by applyInterlockHints).
+        const tip = $('interlockTip');
+        let tipFor = null, showT = null, hideT = null, lastPointer = 'mouse';
+        function showTip(el) {
+          clearTimeout(hideT);
+          let info; try { info = JSON.parse(el.dataset.lock || 'null'); } catch (_) { info = null; }
+          if (!info) return;
+          tipFor = el;
+          tip.className = `tip tip-lock${info.tier === 2 ? ' tier-2' : ''}`;
+          const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+          tip.innerHTML = `
+            <div class="tip-head"><svg class="ic"><use href="#i-${info.tier === 2 ? 'alert' : 'lock'}"/></svg>${esc(info.title)}</div>
+            <p class="tip-body">${esc(info.reason)}</p>
+            <div class="tip-fix">
+              ${(info.fix || []).length ? '<span class="eyebrow">Fix</span>' : ''}
+              ${(info.fix || []).map((f, i) => `<button type="button" class="btn btn-sm" data-fix="${i}">${esc(f.label)}</button>`).join('')}
+              <span class="tip-cost">${info.tier === 2 ? 'Tier 2 · arc-flash' : 'Tier 1'} · −5 if operated</span>
+            </div>`;
+          tip.querySelectorAll('[data-fix]').forEach((b) => b.addEventListener('click', () => {
+            const f = info.fix[+b.dataset.fix];
+            hideTip(true);
+            // Runs the same handler the corresponding Bay Operator button runs
+            new Function(f.onclick)();
+          }));
+          tip.hidden = false;
+          const r = el.getBoundingClientRect();
+          const col = el.closest('.op-column, .left-panel');
+          const t = tip.getBoundingClientRect();
+          let left, top;
+          if (col && col.classList.contains('op-column')) { left = col.getBoundingClientRect().left - t.width - 12; top = r.top + r.height / 2 - t.height / 2; }
+          else { left = r.left; top = r.top - t.height - 10; if (top < 8) top = r.bottom + 10; }
+          tip.style.left = `${Math.max(8, Math.min(left, innerWidth - t.width - 8))}px`;
+          tip.style.top = `${Math.max(8, Math.min(top, innerHeight - t.height - 8))}px`;
+        }
+        function hideTip(now) {
+          clearTimeout(showT);
+          const go = () => { tip.hidden = true; tipFor = null; };
+          if (now) go(); else { clearTimeout(hideT); hideT = setTimeout(go, 220); }
+        }
+        document.addEventListener('pointerdown', (e) => { lastPointer = e.pointerType || 'mouse'; }, true);
+        document.addEventListener('mouseover', (e) => {
+          const el = e.target.closest && e.target.closest('.is-interlocked');
+          if (el) { clearTimeout(hideT); clearTimeout(showT); showT = setTimeout(() => showTip(el), 300); }
+          else if (tip.contains(e.target)) clearTimeout(hideT);
+        });
+        document.addEventListener('mouseout', (e) => {
+          const el = e.target.closest && (e.target.closest('.is-interlocked') || (tip.contains(e.target) ? tip : null));
+          if (el && !(e.relatedTarget && (el.contains(e.relatedTarget) || tip.contains(e.relatedTarget)))) hideTip(false);
+        });
+        document.addEventListener('focusin', (e) => {
+          const el = e.target.closest && e.target.closest('.is-interlocked');
+          if (el) showTip(el); else if (!tip.contains(e.target)) hideTip(true);
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !tip.hidden) { hideTip(true); e.stopPropagation(); } }, true);
+        // Touch: the first tap explains, a second tap on the same control operates it
+        document.addEventListener('click', (e) => {
+          const el = e.target.closest && e.target.closest('.is-interlocked');
+          if (!el || lastPointer !== 'touch' || tipFor === el) return;
+          e.preventDefault(); e.stopPropagation(); showTip(el);
+        }, true);
+        // Re-render replaces the controls: drop a tooltip whose control is gone
+        new MutationObserver(() => { if (tipFor && !document.contains(tipFor)) hideTip(true); }).observe($('bayControls'), { childList: true });
 
         syncRail(); countKeys();
       });
