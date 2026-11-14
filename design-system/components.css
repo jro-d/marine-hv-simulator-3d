@@ -106,6 +106,7 @@ code {
 .btn.is-interlocked .pb-glyph { border-style: dashed; }
 .btn.is-interlocked > .ic { display: none; }
 .btn.is-interlocked.tier-2 { --b-edge: var(--live); --b-ink: var(--live-ink); }
+.btn.is-interlocked:hover, .btn.is-interlocked.btn-close:hover, .btn.is-interlocked.btn-trip:hover { background: var(--surface-2); filter: none; }
 :root { --glyph-lock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='2'/%3E%3Cpath d='M8.5 11V8a3.5 3.5 0 0 1 7 0v3'/%3E%3C/svg%3E"); }
 /* Truly unavailable (no action exists in this state, e.g. Megger buttons with no SFT mission). */
 .btn:disabled { opacity: 1; cursor: not-allowed; --b-fill: var(--surface-2); --b-ink: var(--text-3); --b-edge: var(--line); }

@@ -462,24 +462,10 @@ input[type="range"].cad-slider::-moz-range-thumb {
       align-items: center;
       pointer-events: none;
     }
-.toast {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
-      border-radius: var(--r);
-      background: var(--surface);
-      border: 1px solid var(--line-strong);
-      border-left: 3px solid var(--tc, var(--info));
-      box-shadow: var(--shadow-2);
-      font-size: 13px;
-      color: var(--text);
-      max-width: 100%;
-      animation: toastIn 0.18s ease-out;
-    }
-.toast .ic { color: var(--tc, var(--info)); }
+
+
 @keyframes toastIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
+
 /* 2.5D / SLD stage */
 .view-stage { flex: 1; overflow-y: auto; padding: 16px; display: none; flex-direction: column; gap: 12px; align-items: center; }
 .switchgear-card {
@@ -1307,6 +1293,15 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
     #interlockTip { position: fixed; z-index: var(--z-tooltip); max-width: 360px; }
     #interlockTip[hidden] { display: none; }
     .btn.is-interlocked.btn-close .pb-glyph, .btn.is-interlocked.btn-trip .pb-glyph { border-color: currentColor; }
+
+    /* Toasts: Tier 1 amber (earth), Tier 2 red, with rule, tier, bay and score change */
+    .toast .t-meta .state-flag { min-height: 22px; font-size: 12px; }
+    .toast .t-bay { font: 500 13px/16px var(--font-mono); color: var(--text-2); }
+    .toast .t-why { margin-left: auto; }
+    .toast .t-title { min-width: 0; }
+    .toast:not(:has(.t-meta)) { align-items: center; }
+    .toast:not(:has(.t-meta)) .t-score:empty { display: none; }
+    @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
 
   </style>
 </head>
@@ -2302,31 +2297,38 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
     function showToast(text, tone = 'info') {
       const host = document.getElementById('toastHost');
       if (!host) return;
-      const colors = {
-        info: 'var(--info)',
-        safe: 'var(--safe)',
-        warn: 'var(--earth)',
-        danger: 'var(--live)'
-      };
-      const icons = {
-        info: '#i-info',
-        safe: '#i-check',
-        warn: '#i-alert',
-        danger: '#i-alert'
-      };
+      // Violations arrive through logEvent() as "[Interlock Block -5 pts] Title" (Tier 1) or
+      // "[ARC-FLASH HAZARD -5 pts] Title" (Tier 2). The tier is read from that prefix, so
+      // triggerViolation() itself is unchanged.
+      const m = /^\[(Interlock Block|ARC-FLASH HAZARD) (-\d+) pts\] (.*)$/.exec(text);
+      const tier = m ? (m[1] === 'Interlock Block' ? 1 : 2) : 0;
+      const kind = tier === 1 ? 'tier1' : tier === 2 ? 'tier2' : ({ safe: 'safe', warn: 'warn', danger: 'danger' }[tone] || 'info');
+      const icon = { tier1: '#i-lock', tier2: '#i-alert', safe: '#i-check', warn: '#i-alert', danger: '#i-alert', info: '#i-info' }[kind];
       const item = document.createElement('div');
-      item.className = 'toast';
-      item.style.setProperty('--tc', colors[tone] || colors.info);
-      item.innerHTML = `<svg class="ic"><use href="${icons[tone] || '#i-info'}"/></svg><span></span>`;
-      item.querySelector('span').textContent = text;
+      item.className = `toast t-${kind}`;
+      item.setAttribute('role', kind === 'tier2' || kind === 'danger' ? 'alert' : 'status');
+      item.innerHTML = `<span class="t-ic"><svg class="ic"><use href="${icon}"/></svg></span><span class="t-title"></span><span class="t-score"></span>`;
+      if (tier) {
+        const cub = SIM.cubicles[SIM.selectedCubicle] || SIM.cubicles['BT-M1'];
+        item.querySelector('.t-title').textContent = `${tier === 1 ? 'Interlock block' : 'Arc-flash hazard'} · ${m[3]}`;
+        item.querySelector('.t-score').textContent = `${m[2].replace('-', '−')} · ${SIM.score}/100`;
+        const meta = document.createElement('span');
+        meta.className = 't-meta';
+        meta.innerHTML = `<span class="state-flag ${tier === 2 ? 'solid red' : 'earth'}"><svg class="ic"><use href="${tier === 2 ? '#i-alert' : '#i-lock'}"/></svg>TIER ${tier}</span><span class="t-bay"></span><button type="button" class="btn btn-xs btn-quiet t-why">Why?</button>`;
+        meta.querySelector('.t-bay').textContent = `${cub.code} · ${cub.id}`;
+        // The full reason is the notice triggerViolation() stores for this event
+        meta.querySelector('.t-why').addEventListener('click', () => openLastArcFlashModal());
+        item.appendChild(meta);
+      } else {
+        item.querySelector('.t-title').textContent = text;
+      }
       host.appendChild(item);
       while (host.children.length > 3) {
         host.removeChild(host.firstChild);
       }
-      syncToastHostOffset();
       setTimeout(() => {
         if (item.parentNode) item.parentNode.removeChild(item);
-      }, 3200);
+      }, tier ? 6000 : 3200);
     }
 
     function logEvent(text, tone = null) {
