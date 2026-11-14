@@ -7,7 +7,9 @@
 // build time and embeds them in the import map as base64 data: URLs, so the output opens
 // directly from disk with no network, server or install. The optional popover polyfill
 // (dynamic import, guarded by try/catch) is the only remaining remote reference and is
-// only requested on browsers without native popover support.
+// only requested on browsers without native popover support. The design-system
+// stylesheets linked from index.html (tokens, components, embedded IBM Plex fonts) are
+// inlined too.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,7 +33,16 @@ if (!importMap.imports.three.includes(`three@${THREE_VERSION}`)) {
 const specifiers = new Set(['three']);
 for (const m of html.matchAll(/from\s+'(three\/addons\/[^']+)'/g)) specifiers.add(m[1]);
 
+// Optional: THREE_SRC=<path to an unpacked three@0.160.0 npm package> reads the same pinned
+// files from disk instead of unpkg (for machines without access to the CDN).
+const THREE_SRC = process.env.THREE_SRC ? path.resolve(process.env.THREE_SRC) : null;
+if (THREE_SRC) {
+  const pkg = JSON.parse(await fs.readFile(path.join(THREE_SRC, 'package.json'), 'utf8'));
+  if (pkg.name !== 'three' || pkg.version !== THREE_VERSION) throw new Error(`THREE_SRC must be three@${THREE_VERSION} (found ${pkg.name}@${pkg.version})`);
+}
+
 async function fetchText(url) {
+  if (THREE_SRC) return fs.readFile(path.join(THREE_SRC, url.slice(CDN.length + 1)), 'utf8');
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${url}`);
   return res.text();
@@ -48,10 +59,18 @@ for (const spec of specifiers) {
   console.log(`embedded ${spec.padEnd(52)} ${(code.length / 1024).toFixed(0)} KB`);
 }
 
+// Inline the design-system stylesheets linked by index.html (fonts.css already embeds IBM Plex)
+for (const m of [...html.matchAll(/<link rel="stylesheet" href="(design-system\/[^"]+\.css)" \/>/g)]) {
+  const css = await fs.readFile(path.resolve(path.dirname(input), m[1]), 'utf8');
+  if (/url\(\s*(?!['"]?data:)/.test(css)) throw new Error(`${m[1]} references an external url(); embed it first.`);
+  html = html.replace(m[0], () => `<style data-src="${m[1]}">\n${css}\n  </style>`);
+  console.log(`inlined  ${m[1].padEnd(52)} ${(css.length / 1024).toFixed(0)} KB`);
+}
+
 const newMap = `<script type="importmap">\n${JSON.stringify({ imports }, null, 1)}\n  </script>`;
 html = html.replace(mapMatch[0], () => newMap);
-html = html.replace('<meta name="color-scheme" content="light" />',
-  `<meta name="color-scheme" content="light" />\n  <!-- Offline edition: three@${THREE_VERSION} (MIT, (c) three.js authors) embedded. Built by tools/build-offline.mjs -->`);
+html = html.replace('<meta name="color-scheme" content="light dark" />',
+  `<meta name="color-scheme" content="light dark" />\n  <!-- Offline edition: three@${THREE_VERSION} (MIT, (c) three.js authors) embedded. Built by tools/build-offline.mjs -->`);
 
 await fs.mkdir(path.dirname(output), { recursive: true });
 await fs.writeFile(output, html);

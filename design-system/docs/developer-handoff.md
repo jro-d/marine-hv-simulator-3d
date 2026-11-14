@@ -4,7 +4,7 @@ Target: `marine-hv-simulator-3d.html` at c9cfb5c. The redesign changes markup an
 
 ## Order of work
 
-1. **Styles.** Replace the `<style>` block with `tokens.css` + `components/bundle.css`. Add `data-theme="day"` to `<html>` and set `<meta name="color-scheme" content="light dark">`. Remove `min-width: 1100px` and the global `user-select: none` from `body`.
+1. **Styles.** Replace the `<style>` block with `tokens.css` + `components.css`. Add `data-theme="day"` to `<html>` and set `<meta name="color-scheme" content="light dark">`. Remove `min-width: 1100px` and the global `user-select: none` from `body`.
 2. **Sprite.** Add the 21 proposed icons as `<symbol>`s in the existing sprite.
 3. **Restructure the shell** (table below), keeping IDs.
 4. **Bay Operator.** Rewrite `renderBayControls()` to emit the new markup, keeping the same `onclick` strings, and add `data-hud-act` to every button. Make `renderQuickActionHud()` a no-op that empties `#quickActionHud` (see "Removed").
