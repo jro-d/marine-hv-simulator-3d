@@ -45,8 +45,11 @@ An interactive, zero-build **Three.js (`r160`) 3D Marine High Voltage (6.6 kV, 6
   19. **`CT`** — Toroidal Protection CTs, Core-Balance CT, `ZnO` Surge Arresters, Stress Cones & XLPE Cables
 - **Native-Color Ghost Isolation (`14%` Opacity) & X-Ray Cutaway:** Click any 3D sub-assembly, balanced Left/Right leader callout, or category-coded chip to isolate that part, or toggle **X-ray** to see through outer steel panels and cast-epoxy barrels.
 
-### 3. Light & Minimal "Chart Room" Operator Console UI
-- Warm paper neutrals (`#eeede9` / `#f7f6f3`), sea-teal (`#1f6f78`) and brass (`#8f6519`) maritime accents, bay-coded identity strips (`C1`–`C5`), inline vector SVG iconography, and docked CAD/operator toolbars that keep the 3D viewport completely unobstructed.
+### 3. "Marine HV Console" Operator UI (design system in `design-system/`)
+- **3D twin first:** a slim top bar (mission, plant state, Training / Exam, score), a command rail that opens one drawer at a time (Tools & keys, PPE, Megger, Parts, Permit, Help), and a full-bleed 3D stage with floating view, camera and parts clusters.
+- **One Bay Operator** holds every bay operation and its state: VCB truck track (SERVICE 20 · TEST 10 · DISCONNECTED 0), breaker, voltage proven, earth switch EK6, padlocks, Castell keys and tags. Above it, the Lockout / Tagout stepper shows the current step.
+- **Interlocks explain themselves in Training:** a control whose interlock would fire is shown dashed with a padlock, and hovering, focusing or tapping it shows the shipped interlock reason and a one-click fix. Clicking it still runs the interlock and costs 5 points. Tier 1 toasts are amber; Tier 2 keeps the ISO 7010 W012 arc-flash treatment.
+- **Themes and legibility:** Day, Night watch and Projector (high-contrast) themes plus a Presentation density, from the ⋮ menu. IBM Plex Sans and IBM Plex Mono are embedded (`design-system/fonts.css`, OFL), so the page renders identically offline.
 
 ### 4. Four Complete STCW / COSWP Training & CoC Exam Missions
 1. **Mission 01 — Bow Thruster 6.6 kV Motor Isolation & PTW**

@@ -1288,6 +1288,8 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
     .st .st-act .btn-quiet { min-height: 28px; padding: 0 8px; font-size: 13px; color: var(--text-3); }
     .st.pending .st-act { margin-top: 2px; }
     .exam-mode .st .st-act { display: none; }
+    /* Keep the Bay Operator in view: the step list scrolls inside its card, current step centred */
+    #lotoStepsList.stepper { max-height: min(40vh, 380px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-right: 2px; }
 
     /* Interlock reason tooltip (fixed, so it escapes the scrolling operator column) */
     #interlockTip { position: fixed; z-index: var(--z-tooltip); max-width: 360px; }
@@ -4894,6 +4896,13 @@ table.ref th { background: var(--surface-2); font-weight: 650; }
         }, true);
         // Re-render replaces the controls: drop a tooltip whose control is gone
         new MutationObserver(() => { if (tipFor && !document.contains(tipFor)) hideTip(true); }).observe($('bayControls'), { childList: true });
+
+        // Stepper: keep the current step in view inside its scrolling list
+        const steps = $('lotoStepsList');
+        new MutationObserver(() => {
+          const cur = steps.querySelector('[aria-current="step"]');
+          if (cur) steps.scrollTop = cur.offsetTop - steps.offsetTop - 8;
+        }).observe(steps, { childList: true });
 
         syncRail(); countKeys();
       });

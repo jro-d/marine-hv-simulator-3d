@@ -33,7 +33,16 @@ if (!importMap.imports.three.includes(`three@${THREE_VERSION}`)) {
 const specifiers = new Set(['three']);
 for (const m of html.matchAll(/from\s+'(three\/addons\/[^']+)'/g)) specifiers.add(m[1]);
 
+// Optional: THREE_SRC=<path to an unpacked three@0.160.0 npm package> reads the same pinned
+// files from disk instead of unpkg (for machines without access to the CDN).
+const THREE_SRC = process.env.THREE_SRC ? path.resolve(process.env.THREE_SRC) : null;
+if (THREE_SRC) {
+  const pkg = JSON.parse(await fs.readFile(path.join(THREE_SRC, 'package.json'), 'utf8'));
+  if (pkg.name !== 'three' || pkg.version !== THREE_VERSION) throw new Error(`THREE_SRC must be three@${THREE_VERSION} (found ${pkg.name}@${pkg.version})`);
+}
+
 async function fetchText(url) {
+  if (THREE_SRC) return fs.readFile(path.join(THREE_SRC, url.slice(CDN.length + 1)), 'utf8');
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${url}`);
   return res.text();

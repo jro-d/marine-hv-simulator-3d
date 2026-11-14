@@ -1,6 +1,6 @@
 The operator-console system for the Marine HV 6.6 kV Switchboard simulator: a 3D digital twin and a switching / Permit-to-Work trainer, used by ETO and marine-engineering students and projected in class by instructors. It keeps the shipped "Chart Room" character: calm, precise, warm paper neutrals, sea teal and brass, signal colours that mean what they mean on a real switchboard. It adds the hierarchy, state language and themes the app needs to be learnable, projector-legible and touch-ready.
 
-Everything here is implementable as plain HTML/CSS/vanilla JS in the existing single-file app: `tokens.css` + `components/bundle.css` replace the app's `<style>` block, and the shipped class names (`.btn`, `.chip`, `.segmented-tab`, `.cub-pill`, `.state-flag`, `.toast`, `.tool-item`, `.key-tag`) are kept wherever a component maps one-to-one.
+Everything here is implementable as plain HTML/CSS/vanilla JS in the existing single-file app: `tokens.css` + `components.css` replace the app's `<style>` block, and the shipped class names (`.btn`, `.chip`, `.segmented-tab`, `.cub-pill`, `.state-flag`, `.toast`, `.tool-item`, `.key-tag`) are kept wherever a component maps one-to-one.
 
 ## Principles
 
