@@ -21,6 +21,7 @@ An interactive Three.js model of a 5-bay marine 6.6 kV switchboard, with an expl
 
 No build step or install is needed.
 
+- **On GitHub Pages:** https://jro-d.github.io/marine-hv-simulator-3d/ (single-file offline edition at `/offline.html`). `.github/workflows/pages.yml` redeploys on every push to `main`; `node tools/build-pages.mjs` stages the same site into `_site/`.
 - **Online:** open `index.html` in a modern browser. It loads Three.js `0.160.0` from a CDN.
 - **Offline:** open `dist/marine-hv-simulator-3d-offline.html`. Three.js is embedded, so it works with no network.
 - **Local server:** `npx serve .`
